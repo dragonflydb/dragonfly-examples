@@ -1,0 +1,12 @@
+version: '3'
+services:
+  cache-aside-dragonfly:
+    container_name: "cache-aside-dragonfly"
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    ulimits:
+      memlock: -1
+    ports:
+      - "6379:6379"
+    command:
+      - "--maxmemory=2GB"
+      - "--cache_mode=true"
