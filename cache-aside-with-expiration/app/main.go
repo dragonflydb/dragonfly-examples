@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/redis/go-redis/v9"
 )
@@ -51,7 +51,7 @@ func createServiceApp() *fiber.App {
 func getUserHandler(c *fiber.Ctx) error {
 	// This is for simplicity and demonstration.
 	// Handler should read blog from database by ID, let's pretend we are doing so.
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 200)
 	user := User{
 		ID:   c.Params("id"),
 		Name: "John Doe",
@@ -62,7 +62,7 @@ func getUserHandler(c *fiber.Ctx) error {
 func getBlogHandler(c *fiber.Ctx) error {
 	// This is for simplicity and demonstration.
 	// Handler should read blog from database by ID, let's pretend we are doing so.
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 200)
 	blog := Blog{
 		ID:      c.Params("id"),
 		Content: "This is a micro-blog limited to 140 characters.",
