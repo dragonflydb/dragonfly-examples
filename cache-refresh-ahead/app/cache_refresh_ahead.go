@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
@@ -94,7 +94,7 @@ func (m *CacheRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
 	//
 	// In this case, just like Cache-Aside, we can passively load the data into the cache here.
 	if errors.Is(dataErr, redis.Nil) {
-		log.Println("cache miss, reading from database")
+		log.Info("cache miss - reading from database")
 		return m.refreshCacheAndSendResponse(c, cacheKey)
 	}
 
@@ -102,11 +102,11 @@ func (m *CacheRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
 	//
 	// Determine whether to refresh the cache based on refresh-ahead duration.
 	if cacheTTL < m.refreshAheadDuration {
-		log.Println("cache hit with refreshing")
+		log.Info("cache hit - refreshing")
 		m.sendResponseAndRefreshCacheAsync(uid, cacheKey)
 		return m.sendResponse(c, cacheData)
 	} else {
-		log.Println("cache hit without refreshing")
+		log.Info("cache hit - no refreshing")
 		return m.sendResponse(c, cacheData)
 	}
 }
@@ -143,16 +143,21 @@ func (m *CacheRefreshAheadMiddleware) sendResponseAndRefreshCacheAsync(
 			lockKey = fmt.Sprintf("%s:refresh_lock", cacheKey)
 		)
 		// Try to acquire the refresh-lock.
-		// Note that the value of the refresh-lock is not important, we just need to know whether it is locked.
-		locked, err := m.client.SetNX(ctx, lockKey, "", time.Second*30).Result()
+		// That the value of the refresh-lock is not important, we just need to know whether it is locked.
+		// The refresh-lock will be released after the cache is refreshed.
+		// However, a 10-second timeout is set to prevent the refresh-lock from being locked forever.
+		locked, err := m.client.SetNX(ctx, lockKey, "", time.Second*10).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
-			log.Printf("failed to acquire refresh-lock for %s: %v\n", uid, err)
+			log.Errorf("failed to acquire refresh-lock for %s: %v\n", uid, err)
 			return
 		}
+		defer func() {
+			_ = m.client.Del(ctx, lockKey).Err()
+		}()
 
 		// Failed to acquire the refresh-lock, do nothing.
 		if !locked {
-			log.Printf("someone else is refreshing cache for %s\n", uid)
+			log.Infof("someone else is refreshing cache for %s\n", uid)
 			return
 		}
 
@@ -160,16 +165,16 @@ func (m *CacheRefreshAheadMiddleware) sendResponseAndRefreshCacheAsync(
 		// Load the data from the database and set the cache.
 		data, err := m.dataLoader(uid)
 		if err != nil {
-			log.Printf("failed to load data for %s: %v\n", uid, err)
+			log.Errorf("failed to load data for %s: %v\n", uid, err)
 			return
 		}
 		err = m.client.Set(ctx, cacheKey, data, m.cacheExpiration).Err()
 		if err != nil {
-			log.Printf("failed to set cache for %s: %v\n", uid, err)
+			log.Errorf("failed to set cache for %s: %v\n", uid, err)
 			return
 		}
 
-		log.Printf("successfully refreshed cache for %s\n", uid)
+		log.Infof("successfully refreshed cache for %s\n", uid)
 	}(uid, cacheKey)
 }
 
