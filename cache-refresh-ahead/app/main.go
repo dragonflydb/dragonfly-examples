@@ -31,13 +31,13 @@ func createServiceApp() *fiber.App {
 	)
 
 	// Create cache middleware using the refresh-ahead strategy connecting to the local Dragonfly instance.
-	userCache := NewCacheByUUIDRefreshAheadMiddleware(
+	userCache := NewCacheRefreshAheadMiddleware(
 		client,
 		cacheExpiration,
 		refreshAheadFactor,
 		UseRepo().ReadUserBytesByID,
 	)
-	blogCache := NewCacheByUUIDRefreshAheadMiddleware(
+	blogCache := NewCacheRefreshAheadMiddleware(
 		client,
 		cacheExpiration,
 		refreshAheadFactor,

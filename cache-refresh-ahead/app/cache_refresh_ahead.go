@@ -14,21 +14,21 @@ import (
 
 type DataLoader = func(uid uuid.UUID) ([]byte, error)
 
-// CacheByUUIDRefreshAheadMiddleware is a middleware that implements the refresh-ahead strategy.
-// The cache key is based on the UUID of the resource.
-type CacheByUUIDRefreshAheadMiddleware struct {
+// CacheRefreshAheadMiddleware is a middleware that implements the refresh-ahead strategy.
+// The cache key is based on the request path (resource type and UUID).
+type CacheRefreshAheadMiddleware struct {
 	client               *redis.Client
 	cacheExpiration      time.Duration
 	refreshAheadDuration time.Duration
 	dataLoader           DataLoader
 }
 
-func NewCacheByUUIDRefreshAheadMiddleware(
+func NewCacheRefreshAheadMiddleware(
 	client *redis.Client,
 	cacheExpiration time.Duration,
 	refreshAheadFactor float64,
 	dataLoader DataLoader,
-) *CacheByUUIDRefreshAheadMiddleware {
+) *CacheRefreshAheadMiddleware {
 	// Calculate the refresh-ahead duration with sanity checks.
 	// Note that a refresh-ahead factor of 25% means that the cache will be refreshed
 	// 25% before the total cache expiration time, if the cache is accessed.
@@ -40,7 +40,7 @@ func NewCacheByUUIDRefreshAheadMiddleware(
 		refreshAheadDuration = time.Duration(refreshAheadFactor * float64(cacheExpiration))
 	}
 
-	return &CacheByUUIDRefreshAheadMiddleware{
+	return &CacheRefreshAheadMiddleware{
 		client:               client,
 		cacheExpiration:      cacheExpiration,
 		refreshAheadDuration: refreshAheadDuration,
@@ -48,19 +48,21 @@ func NewCacheByUUIDRefreshAheadMiddleware(
 	}
 }
 
-func (m *CacheByUUIDRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (m *CacheRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
 	// Allow non-GET HTTP methods to pass through this middleware.
 	if c.Method() != fiber.MethodGet {
 		return c.Next()
 	}
 
-	uid, err := m.parseUUID(c)
+	var (
+		ctx      = c.Context()
+		cacheKey = c.Path()
+	)
+
+	uid, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return err
 	}
-
-	cacheKey := m.cacheKeyForUUID(uid)
 
 	// Pipeline a GET command and a TTL command.
 	commands, err := m.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
@@ -73,13 +75,13 @@ func (m *CacheByUUIDRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
 	}
 
 	var (
-		cacheData, getErr = commands[0].(*redis.StringCmd).Bytes()
-		cacheTTL, ttlErr  = commands[1].(*redis.DurationCmd).Result()
+		cacheData, dataErr = commands[0].(*redis.StringCmd).Bytes()
+		cacheTTL, ttlErr   = commands[1].(*redis.DurationCmd).Result()
 	)
 
 	// Check for errors that we cannot proceed with.
-	if getErr != nil && !errors.Is(getErr, redis.Nil) {
-		return getErr
+	if dataErr != nil && !errors.Is(dataErr, redis.Nil) {
+		return dataErr
 	}
 	if ttlErr != nil {
 		return ttlErr
@@ -91,9 +93,9 @@ func (m *CacheByUUIDRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
 	// otherwise it would have been cached and continuously accessed/refreshed.
 	//
 	// In this case, just like Cache-Aside, we can passively load the data into the cache here.
-	if errors.Is(getErr, redis.Nil) {
+	if errors.Is(dataErr, redis.Nil) {
 		log.Println("cache miss, reading from database")
-		return m.refreshCacheAndSendResponse(c, uid)
+		return m.refreshCacheAndSendResponse(c, cacheKey)
 	}
 
 	// Cache hit.
@@ -101,7 +103,7 @@ func (m *CacheByUUIDRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
 	// Determine whether to refresh the cache based on refresh-ahead duration.
 	if cacheTTL < m.refreshAheadDuration {
 		log.Println("cache hit with refreshing")
-		m.sendResponseAndRefreshCacheAsync(uid)
+		m.sendResponseAndRefreshCacheAsync(uid, cacheKey)
 		return m.sendResponse(c, cacheData)
 	} else {
 		log.Println("cache hit without refreshing")
@@ -112,15 +114,15 @@ func (m *CacheByUUIDRefreshAheadMiddleware) Handler(c *fiber.Ctx) error {
 // refreshCacheAndSendResponse delegates to the next handler to read the data from the database.
 // The next handler normally should send the response, and the response body bound to the context
 // can be used to refresh the cache here.
-func (m *CacheByUUIDRefreshAheadMiddleware) refreshCacheAndSendResponse(
+func (m *CacheRefreshAheadMiddleware) refreshCacheAndSendResponse(
 	c *fiber.Ctx,
-	uid uuid.UUID,
+	cacheKey string,
 ) error {
 	if err := c.Next(); err != nil {
 		return err
 	}
 	if err := m.client.Set(
-		c.Context(), m.cacheKeyForUUID(uid),
+		c.Context(), cacheKey,
 		c.Response().Body(), m.cacheExpiration,
 	).Err(); err != nil {
 		return err
@@ -131,14 +133,14 @@ func (m *CacheByUUIDRefreshAheadMiddleware) refreshCacheAndSendResponse(
 // sendResponseAndRefreshCacheAsync refreshes the cache asynchronously.
 // It first tries to acquire a lock to refresh the cache. Since multiple Fiber requests can be running
 // concurrently for the same path, only one of them would be able to acquire the lock and refresh the cache.
-func (m *CacheByUUIDRefreshAheadMiddleware) sendResponseAndRefreshCacheAsync(
+func (m *CacheRefreshAheadMiddleware) sendResponseAndRefreshCacheAsync(
 	uid uuid.UUID,
+	cacheKey string,
 ) {
-	go func(uid uuid.UUID) {
+	go func(uid uuid.UUID, cacheKey string) {
 		var (
-			ctx      = context.Background()
-			cacheKey = m.cacheKeyForUUID(uid)
-			lockKey  = fmt.Sprintf("%s:refresh_lock", cacheKey)
+			ctx     = context.Background()
+			lockKey = fmt.Sprintf("%s:refresh_lock", cacheKey)
 		)
 		// Try to acquire the refresh-lock.
 		// Note that the value of the refresh-lock is not important, we just need to know whether it is locked.
@@ -168,18 +170,10 @@ func (m *CacheByUUIDRefreshAheadMiddleware) sendResponseAndRefreshCacheAsync(
 		}
 
 		log.Printf("successfully refreshed cache for %s\n", uid)
-	}(uid)
+	}(uid, cacheKey)
 }
 
-func (m *CacheByUUIDRefreshAheadMiddleware) sendResponse(c *fiber.Ctx, data []byte) error {
+func (m *CacheRefreshAheadMiddleware) sendResponse(c *fiber.Ctx, data []byte) error {
 	c.Set("content-type", "application/json")
 	return c.Send(data)
-}
-
-func (m *CacheByUUIDRefreshAheadMiddleware) parseUUID(c *fiber.Ctx) (uuid.UUID, error) {
-	return uuid.Parse(c.Params("id"))
-}
-
-func (m *CacheByUUIDRefreshAheadMiddleware) cacheKeyForUUID(uid uuid.UUID) string {
-	return fmt.Sprintf("cache_by_uuid:%s", uid.String())
 }
