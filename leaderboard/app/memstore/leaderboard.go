@@ -66,7 +66,7 @@ func (l *Leaderboard) ReadTopRankList(
 
 	// Read top 100 users and the current user rank in a pipeline from the Redis Sorted-Set.
 	commandsZ, err := l.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		pipe.ZRevRangeWithScores(ctx, zsetKey, 0, 100) // TODO: const or pagination
+		pipe.ZRevRangeWithScores(ctx, zsetKey, 0, 100)
 		pipe.ZRevRank(ctx, zsetKey, hashKey)
 		pipe.ZScore(ctx, zsetKey, hashKey)
 		return nil
