@@ -1,0 +1,49 @@
+version: '3'
+services:
+  redis-v6-instance:
+    container_name: "redis-v6-instance" # used in sentinel.conf
+    image: redis:6.0-alpine
+    command: redis-server
+    ports:
+      - "6379:6379"
+  dragonfly:
+    container_name: "dragonfly"
+    image: 'ghcr.io/dragonflydb/dragonfly:v1.10.0-ubuntu'
+    ulimits:
+      memlock: -1
+    ports:
+      - "6380:6379"
+    command:
+      - "--replicaof=redis-v6-instance:6379"
+      - "--dir=/data"
+  sentinel-1:
+    container_name: 'sentinel-1'
+    image: redis:6.0-alpine
+    ports:
+      - "5001:5000"
+    command: redis-server /etc/sentinel.conf --sentinel
+    volumes:
+      - "./sentinel.conf:/etc/sentinel.conf"
+  sentinel-2:
+    container_name: 'sentinel-2'
+    image: redis:6.0-alpine
+    ports:
+      - "5002:5000"
+    command: redis-server /etc/sentinel.conf --sentinel
+    volumes:
+      - "./sentinel.conf:/etc/sentinel.conf"
+  sentinel-3:
+    container_name: 'sentinel-3'
+    image: redis:6.0-alpine
+    ports:
+      - "5003:5000"
+    command: redis-server /etc/sentinel.conf --sentinel
+    volumes:
+      - "./sentinel.conf:/etc/sentinel.conf"
+  leaderboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: leaderboard
+    ports:
+      - "8080:8080"
