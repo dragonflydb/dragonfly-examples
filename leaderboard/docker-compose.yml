@@ -1,7 +1,7 @@
 version: '3'
 services:
-  redis-v6-instance:
-    container_name: "redis-v6-instance" # used in sentinel.conf
+  redis-source:
+    container_name: "redis-source" # used in sentinel.conf
     image: redis:6.0-alpine
     command: redis-server
     ports:
@@ -14,32 +14,31 @@ services:
     ports:
       - "6380:6379"
     command:
-      - "--replicaof=redis-v6-instance:6379"
       - "--dir=/data"
   sentinel-1:
     container_name: 'sentinel-1'
     image: redis:6.0-alpine
     ports:
       - "5001:5000"
-    command: redis-server /etc/sentinel.conf --sentinel
+    command: redis-server /etc/redis-config/sentinel.conf --sentinel
     volumes:
-      - "./sentinel.conf:/etc/sentinel.conf"
+      - "./config/sentinel-1:/etc/redis-config"
   sentinel-2:
     container_name: 'sentinel-2'
     image: redis:6.0-alpine
     ports:
       - "5002:5000"
-    command: redis-server /etc/sentinel.conf --sentinel
+    command: redis-server /etc/redis-config/sentinel.conf --sentinel
     volumes:
-      - "./sentinel.conf:/etc/sentinel.conf"
+      - "./config/sentinel-2:/etc/redis-config"
   sentinel-3:
     container_name: 'sentinel-3'
     image: redis:6.0-alpine
     ports:
       - "5003:5000"
-    command: redis-server /etc/sentinel.conf --sentinel
+    command: redis-server /etc/redis-config/sentinel.conf --sentinel
     volumes:
-      - "./sentinel.conf:/etc/sentinel.conf"
+      - "./config/sentinel-3:/etc/redis-config"
   leaderboard:
     build:
       context: .
