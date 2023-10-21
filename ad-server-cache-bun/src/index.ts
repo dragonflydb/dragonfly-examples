@@ -17,8 +17,7 @@ const app = new Elysia()
     .post(
         "/ads",
         async (context) => {
-            const metadata: AdMetadata = context.body;
-            await context.adMetadataCache.createAdMetadata(metadata);
+            await context.adMetadataCache.createAdMetadata(context.body);
             context.set.status = 201;
             return;
         },
@@ -27,8 +26,7 @@ const app = new Elysia()
     .post(
         "/ads/preferences",
         async (context) => {
-            const userAdPreferences: UserAdPreferences = context.body;
-            await context.adMetadataCache.createUserPreference(userAdPreferences);
+            await context.adMetadataCache.createUserPreference(context.body);
             context.set.status = 201;
             return;
         },
