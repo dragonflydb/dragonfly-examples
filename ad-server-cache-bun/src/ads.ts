@@ -81,17 +81,18 @@ export class AdMetadataStore {
         if (!results) {
             return [];
         }
-        return results.map(([error, hash]) => {
+        return results.reduce((acc: Array<AdMetadata>, [error, hash]) => {
             if (error) {
                 throw error;
             }
             if (!hash) {
-                return null;
+                return acc;
             }
             if (!Value.Check(AdMetadata, hash)) {
-                return null;
+                return acc;
             }
-            return hash;
-        }).filter((hash) => hash !== null) as Array<AdMetadata>;
+            acc.push(hash);
+            return acc;
+        }, []);
     }
 }
