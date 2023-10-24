@@ -8,12 +8,6 @@ const client = new Dragonfly();
 
 const app = new Elysia()
     .decorate("adMetadataCache", new AdMetadataStore(client))
-    .get(
-        "/ads/:userId",
-        async (context) => {
-            return await context.adMetadataCache.getAdMetadataListByUserPreference(context.params.userId);
-        },
-    )
     .post(
         "/ads",
         async (context) => {
@@ -24,7 +18,7 @@ const app = new Elysia()
         {body: AdMetadata}
     )
     .post(
-        "/ads/preferences",
+        "/ads/user_preferences",
         async (context) => {
             await context.adMetadataCache.createUserPreference(context.body);
             context.set.status = 201;
@@ -32,7 +26,13 @@ const app = new Elysia()
         },
         {body: UserAdPreferences}
     )
-    .listen(3000);
+    .get(
+        "/ads/user_preferences/:userId",
+        async (context) => {
+            return await context.adMetadataCache.getAdMetadataListByUserPreference(context.params.userId);
+        },
+    )
+    .listen(3888);
 
 console.log(
     `Ad server API is running at ${app.server?.hostname}:${app.server?.port}`
