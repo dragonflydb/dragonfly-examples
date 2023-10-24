@@ -15,15 +15,15 @@ export class AdMetadataStore {
         this.client = client;
     }
 
-    metadataKey(metadataId: string): string {
+    private metadataKey(metadataId: string): string {
         return `${AdMetadataStore.AD_METADATA_PREFIX}:${metadataId}`;
     }
 
-    categoryKey(metadataCategory: string): string {
+    private categoryKey(metadataCategory: string): string {
         return `${AdMetadataStore.AD_CATEGORY_PREFIX}:${metadataCategory}`;
     }
 
-    userPreferenceKey(userId: string): string {
+    private userPreferenceKey(userId: string): string {
         return `${AdMetadataStore.AD_USER_PREFERENCE_PREFIX}:${userId}`;
     }
 
@@ -72,7 +72,7 @@ export class AdMetadataStore {
         return await this.getAdMetadataList(adIds);
     }
 
-    async getAdMetadataList(ids: Array<string>): Promise<Array<AdMetadata>> {
+    private async getAdMetadataList(ids: Array<string>): Promise<Array<AdMetadata>> {
         const pipeline = this.client.pipeline();
         ids.forEach((id: string) => {
             pipeline.hgetall(this.metadataKey(id))
