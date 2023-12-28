@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"leaderboard/app/model"
+	"leaderboard/app/util"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -40,7 +41,7 @@ func (l *Leaderboard) IncreaseUserScore(
 		now        = time.Now().UTC()
 		zsetKey    = l.zsetKey()
 		hashKey    = l.hashKey(user.ID)
-		nextMonday = MondayOfTime(now.Add(7 * 24 * time.Hour)).Sub(now)
+		nextMonday = util.MondayOfTime(now.Add(7 * 24 * time.Hour)).Sub(now)
 	)
 
 	_, err := l.client.Pipelined(ctx, func(pipe redis.Pipeliner) error {
@@ -152,13 +153,4 @@ func (l *Leaderboard) ReadTopRankList(
 	}
 
 	return resp, nil
-}
-
-func MondayOfTime(ts time.Time) time.Time {
-	weekday := ts.Weekday()
-	if weekday == time.Monday {
-		return ts
-	}
-	daysToSubtract := (weekday - time.Monday + 7) % 7
-	return ts.AddDate(0, 0, -int(daysToSubtract))
 }
