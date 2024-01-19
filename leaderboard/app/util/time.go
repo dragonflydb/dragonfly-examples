@@ -17,5 +17,5 @@ func MondayOfTime(ts time.Time) time.Time {
 
 // MondayOfTimeStr returns the Monday of the week of the given time in string format.
 func MondayOfTimeStr(ts time.Time) string {
-	return MondayOfTime(ts).Format("2006-01-02")
+	return MondayOfTime(ts).Format("2006_01_02")
 }

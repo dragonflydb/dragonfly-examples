@@ -39,6 +39,16 @@ services:
     command: redis-server /etc/redis-config/sentinel.conf --sentinel
     volumes:
       - "./config/sentinel-3:/etc/redis-config"
+  postgres:
+    container_name: "postgres"
+    image: postgres:13.1-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "leaderboard_dev"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+      POSTGRES_USER: "leaderboard_dev_usr"
+      POSTGRES_PASSWORD: "leaderboard_dev_pwd"
   leaderboard:
     build:
       context: .
