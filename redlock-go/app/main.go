@@ -32,7 +32,7 @@ const (
 )
 
 func main() {
-	// Create 3 clients for each instance of Dragonfly.
+	// Create three clients for each instance of Dragonfly.
 	var (
 		hosts   = []string{dragonflyHost0, dragonflyHost1, dragonflyHost2}
 		clients = make([]redsyncredis.Pool, len(hosts))
