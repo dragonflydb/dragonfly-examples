@@ -2,7 +2,7 @@
 
 [Redlock](https://redis.io/docs/manual/patterns/distributed-locks/) is a recognized algorithm based on Redis for
 distributed locks, ensuring consistent operation and protection against failures such as network partitions and Redis crashes.
-It operates by having a client application send lock requests, using [`SET`](https://www.dragonflydb.io/docs/command-reference/strings/set.md) commands, to multiple **primary Redis instances**.
+It operates by having a client application send lock requests, using [`SET`](https://www.dragonflydb.io/docs/command-reference/strings/set.md) commands, to **multiple primary Redis instances**.
 The lock is successfully acquired when more than half of these instances agree on the lock acquisition.
 To release the lock, the client application uses a Lua script, which involves the [`GET`](https://www.dragonflydb.io/docs/command-reference/strings/get.md) command
 and the [`DEL`](https://www.dragonflydb.io/docs/command-reference/generic/del.md) command, to perform compare-and-delete operations on all the instances involved.
