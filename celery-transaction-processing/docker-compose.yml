@@ -1,0 +1,11 @@
+version: '3'
+services:
+  celery-dragonfly:
+    container_name: "celery-dragonfly"
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    ulimits:
+      memlock: -1
+    ports:
+      - "6380:6379"
+    command:
+      - "--dir=/data"
