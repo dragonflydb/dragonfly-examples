@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 from redis import Redis as Dragonfly, ConnectionPool as DragonflyConnectionPool
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from web3 import Web3
 
@@ -84,7 +85,7 @@ class Deps:
     __session_local = sessionmaker(autocommit=False, autoflush=False, bind=__engine)
 
     @staticmethod
-    def get_db_session():
+    def get_db_session() -> Session:
         db = Deps.__session_local()
         try:
             yield db
@@ -118,12 +119,12 @@ class Deps:
     __dragonfly_client = Dragonfly(connection_pool=__dragonfly_conn_pool)
 
     @staticmethod
-    def get_dragonfly():
+    def get_dragonfly() -> Dragonfly:
         return Deps.__dragonfly_client
 
     # Web3 client.
     __web3_provider = Web3(Web3.HTTPProvider(Constants.get_web3_provider_url()))
 
     @staticmethod
-    def get_web3():
+    def get_web3() -> Web3:
         return Deps.__web3_provider
