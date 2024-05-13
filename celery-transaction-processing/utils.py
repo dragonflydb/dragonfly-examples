@@ -11,9 +11,17 @@ CACHE_EMPTY_EXPIRATION_SECONDS: Final[int] = 30
 LOCK_EXPIRATION_SECONDS: Final[int] = 10
 LOCK_VALUE: Final[str] = "locked"
 
+# This chain ID is for the Ethereum Sepolia testnet.
+# Thus, the 'DF_WEB3_PROVIDER_URI' environment variable should be set to the Sepolia testnet,
+# which looks like 'https://sepolia.infura.io/v3/7eaXXXXXXXXXX' if you are using Infura.
+SEPOLIA_CHAIN_ID: Final[int] = 11155111
+
 # We charge a fixed fee for each transaction.
-# This fee should be enough to cover the blockchain transaction fee.
-TOTAL_TRANSACTION_FEE_IN_WEI: Final[int] = 50000000000000
+# This fee should be enough to cover the blockchain transaction fee, so we can make a profit.
+# Blockchain transaction fees are not fixed and can vary depending on the network congestion.
+# We set the total transaction fee to 0.008 ETH, which is an estimation based on the Sepolia testnet.
+# Note that 1 ETH = 10^18 Wei, so 0.008 ETH = 8000000000000000 Wei
+TOTAL_TRANSACTION_FEE_IN_WEI: Final[int] = 8000000000000000
 
 
 @dataclass

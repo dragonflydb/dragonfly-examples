@@ -44,7 +44,7 @@ async def transaction(
     sys_account_private_key = get_constants().get_system_account_private_key()
     account: LocalAccount = Account.from_key(sys_account_private_key)
     txn_raw = {
-        'chainId': 80002,  # Polygon Amoy Testnet
+        'chainId': utils.SEPOLIA_CHAIN_ID,
         'from': account.address,
         'to': HexBytes(req.to_public_address),
         'value': req.transaction_amount_in_wei,
