@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from eth_typing import HexStr
 from web3.types import TxReceipt
 
-from deps import Deps
+from deps import get_deps
 from models import UserAccountTransactionStatus
 
 
@@ -19,8 +19,8 @@ def get_transaction_status(
         tx_hash: str,
         number_of_blocks_to_wait: int = 10
 ) -> TransactionStatusResponse:
-    receipt = Deps.get_web3().eth.get_transaction_receipt(HexStr(tx_hash))
-    current_block_number = Deps.get_web3().eth.get_block_number()
+    receipt = get_deps().get_web3().eth.get_transaction_receipt(HexStr(tx_hash))
+    current_block_number = get_deps().get_web3().eth.get_block_number()
     return TransactionStatusResponse(
         tx_hash=tx_hash,
         tx_block_number=receipt['blockNumber'],

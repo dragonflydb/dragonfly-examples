@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from web3 import Web3
 
 
-class Constants:
+class _Constants:
     # Use Dragonfly as the default broker and the result backend for Celery.
     DEFAULT_DRAGONFLY_URL: Final[str] = 'redis://localhost:6380/0'
     DRAGONFLY_URL_ENV: Final[str] = 'DF_DRAGONFLY_URL'
@@ -30,15 +30,15 @@ class Constants:
 
     @staticmethod
     def get_dragonfly_url() -> str:
-        return Constants.__dragonfly_url
+        return _Constants.__dragonfly_url
 
     @staticmethod
     def get_celery_broker_url() -> str:
-        return Constants.__celery_broker_url
+        return _Constants.__celery_broker_url
 
     @staticmethod
     def get_celery_backend_url() -> str:
-        return Constants.__celery_backend_url
+        return _Constants.__celery_backend_url
 
     # Use SQLite as the default database.
     DEFAULT_DATABASE_URL: Final[str] = 'sqlite:///./data.db'
@@ -50,7 +50,7 @@ class Constants:
 
     @staticmethod
     def get_database_url() -> str:
-        return Constants.__database_url
+        return _Constants.__database_url
 
     # Web3 related constants.
     SYSTEM_ACCOUNT_PRIVATE_KEY_ENV: Final[str] = 'DF_SYSTEM_ACCOUNT_PRIVATE_KEY'
@@ -70,30 +70,36 @@ class Constants:
 
     @staticmethod
     def get_system_account_private_key() -> str:
-        return Constants.__system_account_private_key
+        return _Constants.__system_account_private_key
 
     @staticmethod
     def get_web3_provider_url() -> str:
-        return Constants.__web3_provider_url
+        return _Constants.__web3_provider_url
 
 
-class Deps:
+__constants_instance = _Constants()
+
+
+def get_constants():
+    return __constants_instance
+
+
+class _Deps:
     # Database client/session.
     __engine = create_engine(
-        Constants.get_database_url(), connect_args={"check_same_thread": False}
+        get_constants().get_database_url(), connect_args={"check_same_thread": False}
     )
     __session_local = sessionmaker(autocommit=False, autoflush=False, bind=__engine)
 
     @staticmethod
     def get_db_session() -> Session:
-        db = Deps.__session_local()
+        db = _Deps.__session_local()
         try:
             yield db
         finally:
             db.close()
 
     # Dragonfly client.
-    @staticmethod
     def __parse_dragonfly_uri(uri):
         result = urlparse(uri)
         host = result.hostname
@@ -110,7 +116,7 @@ class Deps:
 
         return {'host': host, 'port': port, 'db': db}
 
-    __df = __parse_dragonfly_uri(Constants.get_dragonfly_url())
+    __df = __parse_dragonfly_uri(get_constants().get_dragonfly_url())
     __dragonfly_conn_pool = DragonflyConnectionPool(
         host=__df['host'],
         port=__df['port'],
@@ -120,11 +126,18 @@ class Deps:
 
     @staticmethod
     def get_dragonfly() -> Dragonfly:
-        return Deps.__dragonfly_client
+        return _Deps.__dragonfly_client
 
     # Web3 client.
-    __web3_provider = Web3(Web3.HTTPProvider(Constants.get_web3_provider_url()))
+    __web3_provider = Web3(Web3.HTTPProvider(get_constants().get_web3_provider_url()))
 
     @staticmethod
     def get_web3() -> Web3:
-        return Deps.__web3_provider
+        return _Deps.__web3_provider
+
+
+__deps_instance = _Deps()
+
+
+def get_deps():
+    return __deps_instance

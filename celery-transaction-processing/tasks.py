@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 
 import eth
 import models
-from deps import Constants
+from deps import get_constants
 
 logger = get_task_logger(__name__)
 
@@ -21,8 +21,8 @@ class TaskRetryException(Exception):
 # We can use the same Redis URL(s) as long as Dragonfly is running on the port specified.
 app = Celery(
     'tasks',
-    broker=Constants.get_celery_broker_url(),
-    backend=Constants.get_celery_backend_url(),
+    broker=get_constants().get_celery_broker_url(),
+    backend=get_constants().get_celery_backend_url(),
 )
 
 TASK_MAX_RETRIES: Final[int] = 20

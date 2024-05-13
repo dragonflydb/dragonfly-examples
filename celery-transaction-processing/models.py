@@ -34,6 +34,6 @@ class UserAccountTransaction(Base):
     transaction_amount_in_wei = Column(Integer, nullable=False)
     transaction_fee_total_in_wei = Column(Integer, nullable=False)
     transaction_fee_blockchain_in_wei = Column(Integer, nullable=False)
-    status = Column(Enum(UserAccountTransactionStatus), nullable=False, default=UserAccountTransactionStatus.PENDING)
+    status = Column(Enum(UserAccountTransactionStatus), nullable=False)
 
     user_account = relationship("UserAccount", back_populates="user_account_transactions")

@@ -1,4 +1,12 @@
 ```bash
+pip install -r requirements.txt
+```
+
+```bash
+uvicorn main:app --reload
+```
+
+```bash
 celery -A tasks worker --loglevel=INFO
 ```
 

@@ -58,12 +58,12 @@ def txn_to_dict(txn: models.UserAccountTransaction) -> dict:
 
 def txn_dict_to_response(txn: dict) -> TransactionResponse:
     return TransactionResponse(
-        id=txn["id"],
-        transaction_hash=txn["transaction_hash"],
-        from_public_address=txn["from_public_address"],
-        to_public_address=txn["to_public_address"],
-        transaction_amount_in_wei=txn["transaction_amount_in_wei"],
-        transaction_fee_total_in_wei=txn["transaction_fee_total_in_wei"],
-        transaction_fee_blockchain_in_wei=txn["transaction_fee_blockchain_in_wei"],
-        status=txn["status"],
+        id=txn[b"id"],
+        transaction_hash=txn[b"transaction_hash"],
+        from_public_address=txn[b"from_public_address"],
+        to_public_address=txn[b"to_public_address"],
+        transaction_amount_in_wei=txn[b"transaction_amount_in_wei"],
+        transaction_fee_total_in_wei=txn[b"transaction_fee_total_in_wei"],
+        transaction_fee_blockchain_in_wei=txn[b"transaction_fee_blockchain_in_wei"],
+        status=txn[b"status"],
     )
