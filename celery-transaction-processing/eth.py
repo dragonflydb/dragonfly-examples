@@ -12,6 +12,7 @@ class TransactionStatusResponse:
     tx_hash: str
     tx_block_number: int
     current_block_number: int
+    transaction_fee_blockchain_in_wei: int
     status: UserAccountTransactionStatus
 
 
@@ -20,11 +21,13 @@ def get_transaction_status(
         number_of_blocks_to_wait: int = 10
 ) -> TransactionStatusResponse:
     receipt = get_deps().get_web3().eth.get_transaction_receipt(HexStr(tx_hash))
+    gas_price = get_deps().get_web3().eth.get_transaction(HexStr(tx_hash)).gasPrice
     current_block_number = get_deps().get_web3().eth.get_block_number()
     return TransactionStatusResponse(
         tx_hash=tx_hash,
         tx_block_number=receipt['blockNumber'],
         current_block_number=current_block_number,
+        transaction_fee_blockchain_in_wei=receipt['gasUsed'] * gas_price,
         status=__calculate_transaction_status(receipt, current_block_number, number_of_blocks_to_wait)
     )
 

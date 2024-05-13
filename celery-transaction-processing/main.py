@@ -1,5 +1,3 @@
-from typing import Final
-
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from fastapi import FastAPI, Depends, HTTPException
@@ -11,9 +9,7 @@ from web3 import Web3
 import models
 import utils
 from deps import get_deps, get_constants
-
-CACHE_NORMAL_EXPIRATION_SECONDS: Final[int] = 60
-CACHE_EMPTY_EXPIRATION_SECONDS: Final[int] = 30
+from tasks import reconcile_transaction
 
 app = FastAPI()
 
@@ -24,11 +20,18 @@ async def transaction(
         db: Session = Depends(get_deps().get_db_session),
         df: Dragonfly = Depends(get_deps().get_dragonfly),
         w3: Web3 = Depends(get_deps().get_web3),
-):
+) -> utils.TransactionResponse:
+    # Try to acquire a lock on the user account.
+    lock_key = utils.user_account_lock_key(req.user_account_id)
+    lock = df.set(name=lock_key, value=utils.LOCK_VALUE, nx=True, ex=utils.LOCK_EXPIRATION_SECONDS)
+    if not lock:
+        raise HTTPException(
+            status_code=409,
+            detail="User account is locked since a transaction is submitted very recently. Please try again later.",
+        )
+
     # Read the user account from the database first.
-    user_account = db.query(models.UserAccount) \
-        .filter(models.UserAccount.id == req.user_account_id) \
-        .first()
+    user_account = db.query(models.UserAccount).get(req.user_account_id)
     if user_account is None:
         raise HTTPException(status_code=404, detail="User account not found")
 
@@ -54,18 +57,19 @@ async def transaction(
     txn_hash_predicted = txn_signed.hash
 
     # Create a new transaction record and update the user account balance within a database transaction.
+    total_amount_in_wei = req.transaction_amount_in_wei + utils.TOTAL_TRANSACTION_FEE_IN_WEI
     txn = models.UserAccountTransaction(
         user_account_id=req.user_account_id,
         transaction_hash=txn_hash_predicted.hex(),
         from_public_address=account.address,
         to_public_address=req.to_public_address,
         transaction_amount_in_wei=req.transaction_amount_in_wei,
-        transaction_fee_total_in_wei=0,
+        transaction_fee_total_in_wei=utils.TOTAL_TRANSACTION_FEE_IN_WEI,
         transaction_fee_blockchain_in_wei=0,
         status=models.UserAccountTransactionStatus.PENDING,
     )
     db.add(txn)
-    user_account.available_balance_in_wei -= req.transaction_amount_in_wei
+    user_account.available_balance_in_wei -= total_amount_in_wei
     db.commit()
     db.refresh(txn)
 
@@ -77,8 +81,11 @@ async def transaction(
 
     # Cache the transaction in Dragonfly.
     cache_key = utils.txn_cache_key(txn.id)
-    df.hset(cache_key, mapping=utils.txn_to_dict(txn))
-    df.expire(cache_key, CACHE_NORMAL_EXPIRATION_SECONDS)
+    _ = df.hset(cache_key, mapping=utils.txn_to_dict(txn))
+    _ = df.expire(cache_key, utils.CACHE_NORMAL_EXPIRATION_SECONDS)
+
+    # Start the transaction reconciliation task.
+    reconcile_transaction.delay(txn.id)
 
     # Return the transaction response.
     return utils.txn_to_response(txn)
@@ -103,18 +110,16 @@ async def get_transaction(
         return utils.txn_dict_to_response(cached_txn)
 
     # Cache miss, read from the database.
-    txn = db.query(models.UserAccountTransaction) \
-        .filter(models.UserAccountTransaction.id == txn_id) \
-        .first()
+    txn = db.query(models.UserAccountTransaction).get(txn_id)
 
     # If the transaction is not found, cache an empty value with only the ID and return a 404.
     # Caching an empty value is important to prevent cache penetrations.
     if txn is None:
-        df.hset(cache_key, mapping={"id": txn_id})
-        df.expire(cache_key, CACHE_EMPTY_EXPIRATION_SECONDS)
+        _ = df.hset(cache_key, mapping={"id": txn_id})
+        _ = df.expire(cache_key, utils.CACHE_EMPTY_EXPIRATION_SECONDS)
         raise HTTPException(status_code=404, detail="Transaction not found")
 
     # Cache the transaction in Dragonfly and return the response.
-    df.hset(cache_key, mapping=utils.txn_to_dict(txn))
-    df.expire(cache_key, CACHE_NORMAL_EXPIRATION_SECONDS)
+    _ = df.hset(cache_key, mapping=utils.txn_to_dict(txn))
+    _ = df.expire(cache_key, utils.CACHE_NORMAL_EXPIRATION_SECONDS)
     return utils.txn_to_response(txn)

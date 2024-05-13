@@ -1,6 +1,18 @@
 from dataclasses import dataclass
+from typing import Final
 
 import models
+
+CACHE_NORMAL_EXPIRATION_SECONDS: Final[int] = 60
+CACHE_EMPTY_EXPIRATION_SECONDS: Final[int] = 30
+
+# We use a lock to prevent concurrent transactions for the same user account.
+LOCK_EXPIRATION_SECONDS: Final[int] = 10
+LOCK_VALUE: Final[str] = "locked"
+
+# We charge a fixed fee for each transaction.
+# This fee should be enough to cover the blockchain transaction fee.
+TOTAL_TRANSACTION_FEE_IN_WEI: Final[int] = 50000000000000
 
 
 @dataclass
