@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Final
+from urllib.parse import urlparse
 
 import models
 
@@ -79,3 +80,27 @@ def txn_dict_to_response(txn: dict) -> TransactionResponse:
         transaction_fee_blockchain_in_wei=txn[b"transaction_fee_blockchain_in_wei"],
         status=txn[b"status"],
     )
+
+
+@dataclass
+class DragonflyURLParsed:
+    host: str
+    port: int
+    db: int
+
+
+def parse_dragonfly_url(dragonfly_url) -> DragonflyURLParsed:
+    result = urlparse(dragonfly_url)
+    host = result.hostname
+    port = result.port
+    db = 0
+    if result.path:
+        try:
+            db = int(result.path.strip('/'))
+        except ValueError:
+            raise ValueError("Invalid database index in URI")
+
+    if port is None:
+        port = 6379
+
+    return DragonflyURLParsed(host=host, port=port, db=db)

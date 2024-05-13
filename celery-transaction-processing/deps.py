@@ -1,12 +1,13 @@
 import os
 from typing import Final
-from urllib.parse import urlparse
 
 from redis import Redis as Dragonfly, ConnectionPool as DragonflyConnectionPool
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 from web3 import Web3
+
+import utils
 
 
 class _Constants:
@@ -100,27 +101,11 @@ class _Deps:
             db.close()
 
     # Dragonfly client.
-    def __parse_dragonfly_uri(uri):
-        result = urlparse(uri)
-        host = result.hostname
-        port = result.port
-        db = 0
-        if result.path:
-            try:
-                db = int(result.path.strip('/'))
-            except ValueError:
-                raise ValueError("Invalid database index in URI")
-
-        if port is None:
-            port = 6379
-
-        return {'host': host, 'port': port, 'db': db}
-
-    __df = __parse_dragonfly_uri(get_constants().get_dragonfly_url())
+    __dragonfly_url = utils.parse_dragonfly_url(get_constants().get_dragonfly_url())
     __dragonfly_conn_pool = DragonflyConnectionPool(
-        host=__df['host'],
-        port=__df['port'],
-        db=__df['db'],
+        host=__dragonfly_url.host,
+        port=__dragonfly_url.port,
+        db=__dragonfly_url.db,
     )
     __dragonfly_client = Dragonfly(connection_pool=__dragonfly_conn_pool)
 
