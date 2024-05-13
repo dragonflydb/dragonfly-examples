@@ -1,10 +1,8 @@
 CREATE TABLE user_accounts
 (
-    id                                  INTEGER PRIMARY KEY,
-    system_wallet_private_key_encrypted TEXT    NOT NULL,
-    system_wallet_public_address        TEXT    NOT NULL,
-    available_balance_in_wei            INTEGER NOT NULL,
-    current_balance_in_wei              INTEGER NOT NULL
+    id                       INTEGER PRIMARY KEY,
+    available_balance_in_wei INTEGER NOT NULL,
+    current_balance_in_wei   INTEGER NOT NULL
 );
 
 CREATE TABLE user_account_transactions

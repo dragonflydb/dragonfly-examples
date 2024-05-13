@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 from redis import Redis as Dragonfly, ConnectionPool as DragonflyConnectionPool
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from web3 import Web3
 
 
 class Constants:
@@ -50,8 +51,47 @@ class Constants:
     def get_database_url() -> str:
         return Constants.__database_url
 
+    # Web3 related constants.
+    SYSTEM_ACCOUNT_PRIVATE_KEY_ENV: Final[str] = 'DF_SYSTEM_ACCOUNT_PRIVATE_KEY'
+    WEB3_PROVIDER_URL_KEY: Final[str] = 'DF_WEB3_PROVIDER_URI'
+
+    __system_account_private_key = ''
+    if SYSTEM_ACCOUNT_PRIVATE_KEY_ENV in os.environ:
+        __system_account_private_key = os.environ[SYSTEM_ACCOUNT_PRIVATE_KEY_ENV]
+    else:
+        raise ValueError(f'{SYSTEM_ACCOUNT_PRIVATE_KEY_ENV} environment variable is not set')
+
+    __web3_provider_url = ''
+    if WEB3_PROVIDER_URL_KEY in os.environ:
+        __web3_provider_url = os.environ[WEB3_PROVIDER_URL_KEY]
+    else:
+        raise ValueError(f'{WEB3_PROVIDER_URL_KEY} environment variable is not set')
+
+    @staticmethod
+    def get_system_account_private_key() -> str:
+        return Constants.__system_account_private_key
+
+    @staticmethod
+    def get_web3_provider_url() -> str:
+        return Constants.__web3_provider_url
+
 
 class Deps:
+    # Database client/session.
+    __engine = create_engine(
+        Constants.get_database_url(), connect_args={"check_same_thread": False}
+    )
+    __session_local = sessionmaker(autocommit=False, autoflush=False, bind=__engine)
+
+    @staticmethod
+    def get_db_session():
+        db = Deps.__session_local()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    # Dragonfly client.
     @staticmethod
     def __parse_dragonfly_uri(uri):
         result = urlparse(uri)
@@ -69,13 +109,6 @@ class Deps:
 
         return {'host': host, 'port': port, 'db': db}
 
-    # Database client/session.
-    __engine = create_engine(
-        Constants.get_database_url(), connect_args={"check_same_thread": False}
-    )
-    __session_local = sessionmaker(autocommit=False, autoflush=False, bind=__engine)
-
-    # Dragonfly client.
     __df = __parse_dragonfly_uri(Constants.get_dragonfly_url())
     __dragonfly_conn_pool = DragonflyConnectionPool(
         host=__df['host'],
@@ -85,13 +118,12 @@ class Deps:
     __dragonfly_client = Dragonfly(connection_pool=__dragonfly_conn_pool)
 
     @staticmethod
-    def get_db_session():
-        db = Deps.__session_local()
-        try:
-            yield db
-        finally:
-            db.close()
-
-    @staticmethod
     def get_dragonfly():
         return Deps.__dragonfly_client
+
+    # Web3 client.
+    __web3_provider = Web3(Web3.HTTPProvider(Constants.get_web3_provider_url()))
+
+    @staticmethod
+    def get_web3():
+        return Deps.__web3_provider

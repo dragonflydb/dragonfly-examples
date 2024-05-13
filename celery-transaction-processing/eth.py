@@ -1,18 +1,10 @@
-import os
 from dataclasses import dataclass
 
 from eth_typing import HexStr
-from web3 import Web3
 from web3.types import TxReceipt
 
+from deps import Deps
 from models import UserAccountTransactionStatus
-
-WEB3_PROVIDER_URL_KEY = 'WEB3_PROVIDER_URI'
-
-if WEB3_PROVIDER_URL_KEY not in os.environ:
-    raise ValueError(f'{WEB3_PROVIDER_URL_KEY} environment variable is not set')
-
-w3 = Web3(Web3.HTTPProvider(os.environ[WEB3_PROVIDER_URL_KEY]))
 
 
 @dataclass
@@ -27,8 +19,8 @@ def get_transaction_status(
         tx_hash: str,
         number_of_blocks_to_wait: int = 10
 ) -> TransactionStatusResponse:
-    receipt = w3.eth.get_transaction_receipt(HexStr(tx_hash))
-    current_block_number = w3.eth.get_block_number()
+    receipt = Deps.get_web3().eth.get_transaction_receipt(HexStr(tx_hash))
+    current_block_number = Deps.get_web3().eth.get_block_number()
     return TransactionStatusResponse(
         tx_hash=tx_hash,
         tx_block_number=receipt['blockNumber'],
