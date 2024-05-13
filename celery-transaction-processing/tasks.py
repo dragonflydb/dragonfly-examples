@@ -1,16 +1,11 @@
-import os
+from typing import Final
 
 from celery import Celery
 from celery.utils.log import get_task_logger
 
 import eth
 import models
-
-DRAGONFLY_URL_KEY = 'DRAGONFLY_URL'
-dragonfly_url = 'redis://localhost:6380/0'
-
-if DRAGONFLY_URL_KEY in os.environ:
-    dragonfly_url = os.environ[DRAGONFLY_URL_KEY]
+from deps import Constants
 
 logger = get_task_logger(__name__)
 
@@ -26,13 +21,12 @@ class TaskRetryException(Exception):
 # We can use the same Redis URL(s) as long as Dragonfly is running on the port specified.
 app = Celery(
     'tasks',
-    broker=dragonfly_url,
-    backend=dragonfly_url,
+    broker=Constants.get_celery_broker_url(),
+    backend=Constants.get_celery_backend_url(),
 )
 
-TASK_MAX_RETRIES: int = 20
-TASK_RETRY_DELAY: int = 100
-NUM_OF_BLOCKS_TO_WAIT: int = 10  # Number of blocks to wait until the transaction is considered final
+TASK_MAX_RETRIES: Final[int] = 20
+TASK_RETRY_DELAY: Final[int] = 100
 
 
 # Define a Celery task to reconcile a transaction.
@@ -49,9 +43,9 @@ NUM_OF_BLOCKS_TO_WAIT: int = 10  # Number of blocks to wait until the transactio
     retry_backoff=TASK_RETRY_DELAY,
     retry_jitter=False,
 )
-def reconcile_transaction(self, tx_id: str):
+def reconcile_transaction(_self, tx_id: str):
     try:
-        status_response = eth.get_transaction_status(tx_id, NUM_OF_BLOCKS_TO_WAIT)
+        status_response = eth.get_transaction_status(tx_id)
         logger.info(status_response)
         if status_response.status == models.UserAccountTransactionStatus.PENDING:
             raise TaskRetryException('TransactionStatus=PENDING')

@@ -1,9 +1,10 @@
 import enum
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Enum
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from database import Base
+Base = declarative_base()
 
 
 class UserAccount(Base):
@@ -32,7 +33,9 @@ class UserAccountTransaction(Base):
     transaction_hash = Column(String, nullable=False)
     from_public_address = Column(String, nullable=False)
     to_public_address = Column(String, nullable=False)
-    amount_in_wei = Column(Integer, nullable=False)
+    transaction_amount_in_wei = Column(Integer, nullable=False)
+    transaction_fee_total_in_wei = Column(Integer, nullable=False)
+    transaction_fee_blockchain_in_wei = Column(Integer, nullable=False)
     status = Column(Enum(UserAccountTransactionStatus), nullable=False, default=UserAccountTransactionStatus.PENDING)
 
     user_account = relationship("UserAccount", back_populates="user_account_transactions")
