@@ -4,6 +4,13 @@ import models
 
 
 @dataclass
+class TransactionRequest:
+    user_account_id: int
+    to_public_address: str
+    transaction_amount_in_wei: int
+
+
+@dataclass
 class TransactionResponse:
     id: int
     transaction_hash: str
@@ -15,8 +22,12 @@ class TransactionResponse:
     status: str
 
 
-def txn_cache_key(transaction_id: int) -> str:
-    return f"user_account_transaction:{transaction_id}"
+def user_account_lock_key(user_account_id: int) -> str:
+    return f"user_account_lock:{user_account_id}"
+
+
+def txn_cache_key(txn_id: int) -> str:
+    return f"user_account_transaction:{txn_id}"
 
 
 def txn_to_response(txn: models.UserAccountTransaction) -> TransactionResponse:
