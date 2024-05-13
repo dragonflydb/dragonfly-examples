@@ -3,7 +3,7 @@ pip install -r requirements.txt
 ```
 
 ```bash
-uvicorn main:app --reload
+uvicorn main:api_app --reload
 ```
 
 ```bash

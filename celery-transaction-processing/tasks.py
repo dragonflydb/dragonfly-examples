@@ -23,7 +23,8 @@ class TaskNotRetryException(Exception):
         super().__init__(message)
 
 
-# Use Dragonfly as the broker and the result backend for Celery.
+# Celery app configuration.
+# Use Dragonfly as the message broker and the result storage backend for Celery.
 # Dragonfly is wire-protocol compatible with Redis.
 # We can use the same Redis URL(s) as long as Dragonfly is running on the port specified.
 app = Celery(
@@ -32,22 +33,28 @@ app = Celery(
     backend=get_constants().get_celery_backend_url(),
 )
 
-TASK_MAX_RETRIES: Final[int] = 20
-TASK_RETRY_DELAY: Final[int] = 100
+TASK_MAX_RETRIES: Final[int] = 32
+TASK_RETRY_BACKOFF: Final[int] = 100
+TASK_RETRY_BACKOFF_MAX: Final[int] = 1600
 
 
 # Define a Celery task to reconcile a transaction.
 # We check the transaction status from the blockchain and update the database accordingly.
 # The blockchain is just an example. Many finical systems have similar reconciliation or settlement processes.
 #
-# Maximum retry count is TASK_MAX_RETRIES, and the delay between retries is exponential.
-# The retry delays are [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, ...] * TASK_RETRY_DELAY seconds.
-# Thus, the first retry is after 100 seconds, the second retry is after 200 seconds, and so on.
+# Maximum retry count is 32, and the delay between retries is exponential.
+#
+# The retry delays are [1, 2, 4, 8, 16, ...] x 100 seconds.
+# So, the first retry is after 100 seconds, the second retry is after 200 seconds, and so on.
+#
+# The maximum backoff delay is set to 1600 seconds.
+# Thus, the retry delays in this configuration are [100, 200, 400, 800, 1600, 1600, ...] seconds up to 32 retries.
 @app.task(
     bind=True,
     autoretry_for=(TaskRetryException,),
     max_retries=TASK_MAX_RETRIES,
-    retry_backoff=TASK_RETRY_DELAY,
+    retry_backoff=TASK_RETRY_BACKOFF,
+    retry_backoff_max=TASK_RETRY_BACKOFF_MAX,
     retry_jitter=False,
 )
 def reconcile_transaction(_self, txn_id: str):

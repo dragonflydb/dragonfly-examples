@@ -11,11 +11,11 @@ import utils
 from deps import get_deps, get_constants
 from tasks import reconcile_transaction
 
-app = FastAPI()
+api_app = FastAPI()
 
 
-@app.post("/transactions")
-async def transaction(
+@api_app.post("/transactions")
+async def create_transaction(
         req: utils.TransactionRequest,
         db: Session = Depends(get_deps().get_db_session),
         df: Dragonfly = Depends(get_deps().get_dragonfly),
@@ -23,8 +23,12 @@ async def transaction(
 ) -> utils.TransactionResponse:
     # Try to acquire a lock on the user account.
     lock_key = utils.user_account_lock_key(req.user_account_id)
-    lock = df.set(name=lock_key, value=utils.LOCK_VALUE, nx=True, ex=utils.LOCK_EXPIRATION_SECONDS)
-    if not lock:
+    locked = df.set(
+        name=lock_key, value=utils.LOCK_VALUE,
+        nx=True, ex=utils.LOCK_EXPIRATION_SECONDS,
+    )
+
+    if not locked:
         raise HTTPException(
             status_code=409,
             detail="User account is locked since a transaction is submitted very recently. Please try again later.",
@@ -81,8 +85,8 @@ async def transaction(
 
     # Cache the transaction in Dragonfly.
     cache_key = utils.txn_cache_key(txn.id)
-    _ = df.hset(cache_key, mapping=utils.txn_to_dict(txn))
-    _ = df.expire(cache_key, utils.CACHE_NORMAL_EXPIRATION_SECONDS)
+    mapping = utils.txn_to_dict(txn)
+    utils.hset_and_expire(df, cache_key, mapping, utils.CACHE_NORMAL_EXPIRATION_SECONDS)
 
     # Start the transaction reconciliation task.
     reconcile_transaction.delay(txn.id)
@@ -91,7 +95,7 @@ async def transaction(
     return utils.txn_to_response(txn)
 
 
-@app.get("/transactions/{txn_id}")
+@api_app.get("/transactions/{txn_id}")
 async def get_transaction(
         txn_id: int,
         db: Session = Depends(get_deps().get_db_session),
@@ -115,11 +119,10 @@ async def get_transaction(
     # If the transaction is not found, cache an empty value with only the ID and return a 404.
     # Caching an empty value is important to prevent cache penetrations.
     if txn is None:
-        _ = df.hset(cache_key, mapping={"id": txn_id})
-        _ = df.expire(cache_key, utils.CACHE_EMPTY_EXPIRATION_SECONDS)
+        utils.hset_and_expire(df, cache_key, {"id": txn_id}, utils.CACHE_EMPTY_EXPIRATION_SECONDS)
         raise HTTPException(status_code=404, detail="Transaction not found")
 
     # Cache the transaction in Dragonfly and return the response.
-    _ = df.hset(cache_key, mapping=utils.txn_to_dict(txn))
-    _ = df.expire(cache_key, utils.CACHE_NORMAL_EXPIRATION_SECONDS)
+    mapping = utils.txn_to_dict(txn)
+    utils.hset_and_expire(df, cache_key, mapping, utils.CACHE_NORMAL_EXPIRATION_SECONDS)
     return utils.txn_to_response(txn)
