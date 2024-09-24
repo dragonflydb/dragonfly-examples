@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Final
 from urllib.parse import urlparse
 
+from redis import Redis as Dragonfly
+
 import models
 
 CACHE_NORMAL_EXPIRATION_SECONDS: Final[int] = 60
@@ -112,3 +114,15 @@ def parse_dragonfly_url(dragonfly_url) -> DragonflyURLParsed:
         port = 6379
 
     return DragonflyURLParsed(host=host, port=port, db=db)
+
+
+def hset_and_expire(
+        df: Dragonfly,
+        key: str,
+        mapping: dict,
+        expiration: int,
+):
+    pipe = df.pipeline()
+    pipe.hset(key, mapping=mapping)
+    pipe.expire(key, expiration)
+    pipe.execute()
