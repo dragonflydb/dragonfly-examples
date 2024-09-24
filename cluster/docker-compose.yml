@@ -1,0 +1,26 @@
+version: '3'
+services:
+  dragonfly-cluster-1:
+    container_name: "dragonfly-cluster-1"
+    image: 'ghcr.io/dragonflydb/dragonfly:v1.22.2-ubuntu'
+    ulimits:
+      memlock: -1
+    ports:
+      - "30001:6379"
+      - "31001:31001"
+    command:
+      - "--dir=/data"
+      - "-cluster_mode=yes"
+      - "-admin_port=31001"
+  dragonfly-cluster-2:
+    container_name: "dragonfly-cluster-2"
+    image: 'ghcr.io/dragonflydb/dragonfly:v1.22.2-ubuntu'
+    ulimits:
+      memlock: -1
+    ports:
+      - "30002:6379"
+      - "31002:31002"
+    command:
+      - "--dir=/data"
+      - "-cluster_mode=yes"
+      - "-admin_port=31002"
