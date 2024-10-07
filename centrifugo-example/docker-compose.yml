@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  centrifugo-dragonfly:
+    container_name: "centrifugo-dragonfly"
+    # Dragonfly latest version (September 2024)
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly:v1.22.2"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6379:6379"
+    command:
+      - "--dir=/data"
+  centrifugo-server:
+    container_name: "centrifugo-server"
+    # Dragonfly latest version (September 2024)
+    image: "centrifugo/centrifugo:v5"
+    volumes:
+      - "./config.json:/centrifugo/config.json"
+    command: "centrifugo -c config.json"
+    ports:
+      - "8000:8000"
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    depends_on:
+      - centrifugo-dragonfly

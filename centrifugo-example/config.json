@@ -1,0 +1,11 @@
+{
+  "api_key": "centrifugo-api-key",
+  "token_hmac_secret_key": "centrifugo-secret-key",
+  "admin": true,
+  "admin_password": "centrifugo-admin-password",
+  "admin_secret": "centrifugo-admin-secret",
+  "allowed_origins": ["http://localhost:3000"],
+  "allow_subscribe_for_client": true,
+  "engine": "redis",
+  "redis_address": "centrifugo-dragonfly:6379"
+}
