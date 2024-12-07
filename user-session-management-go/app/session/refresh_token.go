@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -16,9 +17,7 @@ const (
 	refreshTokenTextDelimiter   = "__"
 )
 
-var (
-	dragonfly *redis.Client
-)
+var dragonfly *redis.Client
 
 func init() {
 	// Initialize a Redis client, which can be used to manipulate data in Dragonfly.
@@ -38,7 +37,7 @@ type RefreshToken struct {
 func (t *RefreshToken) UnmarshalText(data []byte) error {
 	parts := strings.SplitN(string(data), refreshTokenTextDelimiter, 2)
 	if len(parts) != 2 {
-		return fmt.Errorf("invalid token format")
+		return errors.New("invalid refresh token format")
 	}
 
 	userIDStr, tokenStr := parts[0], parts[1]
@@ -87,7 +86,7 @@ type TokenResponse struct {
 	RefreshToken RefreshToken `json:"refresh_token"`
 }
 
-// GenerateTokens creates a new refresh token and stores it in Dragonfly.
+// GenerateTokens creates a new pair of refresh and access tokens.
 // The refresh token is stored in Dragonfly with the key "user:<userID>:sessions".
 // This function should be called when a user logs in.
 func GenerateTokens(ctx context.Context, userID uuid.UUID) (*TokenResponse, error) {
@@ -115,25 +114,28 @@ func GenerateTokens(ctx context.Context, userID uuid.UUID) (*TokenResponse, erro
 		return nil, err
 	}
 
-	// Return the new pair of tokens.
+	// Return the new pair of refresh and access tokens.
 	return &TokenResponse{
 		AccessToken:  newAccessToken,
 		RefreshToken: newRefreshToken,
 	}, nil
 }
 
-// RefreshTokens validates the refresh token and issues a new access token.
+var ErrRefreshTokensNotAuthorized = errors.New("invalid refresh token")
+
+// RefreshTokens validates the refresh token and issues a new pair of refresh and access tokens.
 // The refresh token is stored in Dragonfly with the key "user:<userID>:sessions".
+// The old refresh token is removed from Dragonfly.
 // This function should be called when a user requests a pair of new tokens using a refresh token.
 func RefreshTokens(ctx context.Context, refreshToken RefreshToken) (*TokenResponse, error) {
 	// Validate the refresh token in Dragonfly.
 	key := fmt.Sprintf(refreshTokenKeyFormat, refreshToken.UserID.String())
-	ok, err := dragonfly.SIsMember(ctx, key, refreshToken.Token.String()).Result()
+	isMember, err := dragonfly.SIsMember(ctx, key, refreshToken.Token.String()).Result()
 	if err != nil {
 		return nil, err
 	}
-	if !ok {
-		return nil, fmt.Errorf("invalid refresh token")
+	if !isMember {
+		return nil, ErrRefreshTokensNotAuthorized
 	}
 
 	// Generate a new pair of tokens.
@@ -172,7 +174,7 @@ func RefreshTokens(ctx context.Context, refreshToken RefreshToken) (*TokenRespon
 }
 
 // RemoveRefreshToken removes the refresh token from Dragonfly.
-// The refresh token is stored in Dragonfly with the key "user:<userID>:sessions".
+// If the refresh token is not found, this function does nothing and returns nil.
 func RemoveRefreshToken(ctx context.Context, refreshToken RefreshToken) error {
 	key := fmt.Sprintf(refreshTokenKeyFormat, refreshToken.UserID.String())
 	_, err := dragonfly.SRem(ctx, key, refreshToken.Token.String()).Result()
