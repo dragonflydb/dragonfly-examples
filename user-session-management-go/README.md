@@ -52,11 +52,10 @@ session management system, highlighting why Dragonfly is an excellent choice for
 ## Packages Used
 
 - The [go-redis](https://github.com/redis/go-redis) client is used. It has strongly typed methods for various commands.
-  It is also the recommended Go client to interact with Dragonfly.
 - The [Fiber](https://github.com/gofiber/fiber) framework is used to build the HTTP server.
-  It is a fast, lightweight, and easy-to-use web framework for Go inspired by Express.
+  It is a fast, lightweight, and easy-to-use web framework for Go.
 - Others:
-    - [jwt(https://github.com/golang-jwt/jwt) for generating and verifying JWT tokens.
+    - [jwt](https://github.com/golang-jwt/jwt) for generating and verifying JWT tokens.
     - [uuid](https://github.com/google/uuid) for generating and parsing UUIDs.
     - [go-sqlite3](https://github.com/mattn/go-sqlite3) for interacting with the SQLite database. Note that `go-sqlite3`
       is a [CGO-enabled package](https://github.com/mattn/go-sqlite3?tab=readme-ov-file#installation).
@@ -64,8 +63,14 @@ session management system, highlighting why Dragonfly is an excellent choice for
 
 ## Local Setup
 
-- Note that all the commands should be **executed within the root directory of
-  this example project (`dragonfly-examples/user-session-management-go`)**.
+- Note that all the commands should be **executed within the root directory of this example project:**
+
+```shell
+# Make sure you are in the correct directory, which is in 'user-session-management-go'.
+$> pwd
+/path/to/your/dragonfly-examples/user-session-management-go
+```
+
 - Make sure that you have [Go v1.23+](https://go.dev/dl/) installed locally.
 - Make sure that you have [Docker](https://docs.docker.com/engine/install/) installed locally.
 - Make sure that you have [Docker Compose](https://docs.docker.com/compose/install/) installed locally.
@@ -73,30 +78,30 @@ session management system, highlighting why Dragonfly is an excellent choice for
 
 ```bash
 # Within the root directory of this example (dragonfly-examples/user-session-management-go):
-docker compose build --no-cache && docker compose up -d
+$> docker compose build --no-cache && docker compose up -d
 ```
 
 - Install the required Go packages:
 
 ```bash
 # Within the root directory of this example (dragonfly-examples/user-session-management-go):
-go mod tidy && go mod vendor
+$> go mod tidy && go mod vendor
 ```
 
 - Run the Go application:
 
 ```bash
 # Within the root directory of this example (dragonfly-examples/user-session-management-go):
-go run app/main.go
+$> go run app/main.go
 ```
 
 - Use the API to register a user:
 
 ```bash
-curl --request POST \
-  --url http://localhost:8080/user/register \
-  --header 'Content-Type: application/json' \
-  --data '{
+$> curl --request POST \
+   --url http://localhost:8080/user/register \
+   --header 'Content-Type: application/json' \
+   --data '{
 	"username": "joe",
 	"password": "123"
 }'
@@ -106,10 +111,10 @@ curl --request POST \
   Note that a new login request assumes a new session (i.e., a new device or browser).
 
 ```bash
-curl --request POST \
-  --url http://localhost:8080/user/login \
-  --header 'Content-Type: application/json' \
-  --data '{
+$> curl --request POST \
+   --url http://localhost:8080/user/login \
+   --header 'Content-Type: application/json' \
+   --data '{
 	"username": "joe",
 	"password": "123"
 }'
@@ -118,23 +123,23 @@ curl --request POST \
 - Use the API to refresh a user's session with the **refresh token**:
 
 ```bash
-curl --request POST \
-  --url http://localhost:8080/user/refresh-token \
-  --header 'Authorization: Bearer 0193a31d-XXXXX__8167b120-XXXXX'
+$> curl --request POST \
+   --url http://localhost:8080/user/refresh-token \
+   --header 'Authorization: Bearer 0193a31d-XXXXX__8167b120-XXXXX'
 ```
 
 - Use the API to log out a user with the **refresh token**:
 
 ```bash
-curl --request POST \
-  --url http://localhost:8080/user/logout \
-  --header 'Authorization: Bearer 0193a31d-XXXXX__8167b120-XXXXX'
+$> curl --request POST \
+   --url http://localhost:8080/user/logout \
+   --header 'Authorization: Bearer 0193a31d-XXXXX__8167b120-XXXXX'
 ```
 
 - Use the API to read restricted data with the **access token**:
 
 ```bash
-curl --request GET \
-  --url http://localhost:8080/resource \
-  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXXX.XXXXX' \
+$> curl --request GET \
+   --url http://localhost:8080/resource \
+   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXXX.XXXXX'
 ```
