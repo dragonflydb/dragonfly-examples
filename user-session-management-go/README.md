@@ -41,9 +41,8 @@ dragonfly$> SMEMBERS user:0193a31d-73ab-7e29-b0dd-XXXXXXXXXXXX:sessions
 # Each session has a distinct refresh token with a unique expiration time.
 dragonfly$> FIELDTTL user:0193a31d-73ab-7e29-b0dd-XXXXXXXXXXXX:sessions 08e666c9-9dfe-4f98-bacb-XXXXXXXXXXXX
 (integer) 518400 # 6 days
-
 dragonfly$> FIELDTTL user:0193a31d-73ab-7e29-b0dd-XXXXXXXXXXXX:sessions fbb55a43-26e8-42b2-9e32-XXXXXXXXXXXX
-(integer) 600 # 10 minutes
+(integer) 600    # 10 minutes
 ```
 
 This project demonstrates how to leverage Dragonfly's set data type to build a scalable, secure, and efficient user
@@ -102,9 +101,9 @@ $> curl --request POST \
    --url http://localhost:8080/user/register \
    --header 'Content-Type: application/json' \
    --data '{
-	"username": "joe",
-	"password": "123"
-}'
+     "username": "joe",
+     "password": "123"
+   }'
 ```
 
 - Use the API to log in a user as below.
@@ -115,9 +114,9 @@ $> curl --request POST \
    --url http://localhost:8080/user/login \
    --header 'Content-Type: application/json' \
    --data '{
-	"username": "joe",
-	"password": "123"
-}'
+     "username": "joe",
+     "password": "123"
+   }'
 ```
 
 - Use the API to refresh a user's session with the **refresh token**:
