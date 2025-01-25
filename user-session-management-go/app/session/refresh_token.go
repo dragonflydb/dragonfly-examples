@@ -121,7 +121,7 @@ func GenerateTokens(ctx context.Context, userID uuid.UUID) (*TokenResponse, erro
 	}, nil
 }
 
-var ErrRefreshTokensNotAuthorized = errors.New("invalid refresh token")
+var ErrInvalidOrExpiredRefreshToken = errors.New("invalid or expired refresh token")
 
 // RefreshTokens validates the refresh token and issues a new pair of refresh and access tokens.
 // The refresh token is stored in Dragonfly with the key "user:<userID>:sessions".
@@ -135,7 +135,7 @@ func RefreshTokens(ctx context.Context, refreshToken RefreshToken) (*TokenRespon
 		return nil, err
 	}
 	if !isMember {
-		return nil, ErrRefreshTokensNotAuthorized
+		return nil, ErrInvalidOrExpiredRefreshToken
 	}
 
 	// Generate a new pair of tokens.
