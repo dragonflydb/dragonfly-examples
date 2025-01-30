@@ -1,0 +1,96 @@
+[
+    {
+        "id": 1245186,
+        "title": "Bitfinex Decrease BTC Withdrawal Fees By 25%",
+        "published_at": 1737556205,
+        "url": "https://cryptopanic.com/news/1245186/Bitfinex-Decrease-BTC-Withdrawal-Fees-By-25",
+        "source": {
+            "domain": "reddit.com",
+            "title": "r/Bitcoin Reddit",
+            "path": "r/bitcoin"
+        },
+        "votes": {"negative": 0, "positive": 11, "important": 6},
+        "currencies": [{"code": "BTC", "title": "Bitcoin", "slug": "bitcoin"}]
+    },
+    {
+        "id": 1245187,
+        "title": "Ethereum Upgrade Brings New Scalability Features",
+        "published_at": 1737890000,
+        "url": "https://cryptopanic.com/news/1245187/Ethereum-Upgrade-Scalability",
+        "source": {
+            "domain": "coindesk.com",
+            "title": "CoinDesk",
+            "path": "/ethereum"
+        },
+        "votes": {"negative": 1, "positive": 20, "important": 10},
+        "currencies": [{"code": "ETH", "title": "Ethereum", "slug": "ethereum"}]
+    },
+    {
+        "id": 1245188,
+        "title": "Major Exchange Reports Security Breach",
+        "published_at": 1696155330,
+        "url": "https://cryptopanic.com/news/1245188/Major-Exchange-Security-Breach",
+        "source": {
+            "domain": "twitter.com",
+            "title": "Crypto Alerts",
+            "path": "/crypto-alerts"
+        },
+        "votes": {"negative": 10, "positive": 5, "important": 25},
+        "currencies": [
+            {"code": "BTC", "title": "Bitcoin", "slug": "bitcoin"},
+            {"code": "ETH", "title": "Ethereum", "slug": "ethereum"}
+        ]
+    },
+    {
+        "id": 1245194,
+        "title": "Bitcoin Plummets 20% After Market Sell-Off",
+        "published_at": 1737800000,
+        "url": "https://cryptopanic.com/news/1245194/Bitcoin-Plummets-20",
+        "source": {
+            "domain": "cryptoslate.com",
+            "title": "CryptoSlate",
+            "path": "/bitcoin"
+        },
+        "votes": {"negative": 20, "positive": 3, "important": 15},
+        "currencies": [{"code": "BTC", "title": "Bitcoin", "slug": "bitcoin"}]
+    },
+    {
+        "id": 1245195,
+        "title": "Bitcoin Crash: Investors Lose Confidence",
+        "published_at": 1737557105,
+        "url": "https://cryptopanic.com/news/1245195/Bitcoin-Crash-Investors",
+        "source": {
+            "domain": "decrypt.co",
+            "title": "Decrypt",
+            "path": "/bitcoin"
+        },
+        "votes": {"negative": 30, "positive": 2, "important": 20},
+        "currencies": [{"code": "BTC", "title": "Bitcoin", "slug": "bitcoin"}]
+    },
+    {
+        "id": 1245196,
+        "title": "Ripple's Legal Battle: What's Next?",
+        "published_at": 1737556125,
+        "url": "https://cryptopanic.com/news/1245196/Ripples-Legal-Battle",
+        "source": {
+            "domain": "newsbtc.com",
+            "title": "NewsBTC",
+            "path": "/ripple"
+        },
+        "votes": {"negative": 3, "positive": 8, "important": 12},
+        "currencies": [{"code": "XRP", "title": "Ripple", "slug": "ripple"}]
+    },
+    {
+        "id": 1245197,
+        "title": "Ethereum 2.0 Launches Successfully",
+        "published_at": 1737800000,
+        "url": "https://cryptopanic.com/news/1245197/Ethereum-2-Launch",
+        "source": {
+            "domain": "cryptoslate.com",
+            "title": "CryptoSlate",
+            "path": "/ethereum"
+        },
+        "votes": {"negative": 2, "positive": 30, "important": 20},
+        "currencies": [{"code": "ETH", "title": "Ethereum", "slug": "ethereum"}]
+    }
+]
