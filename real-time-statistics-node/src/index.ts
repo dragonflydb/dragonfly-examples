@@ -1,6 +1,6 @@
 import express from 'express';
 import { MONTHLY_ACTIVE_USER_PREFIX, trackMonthlyActiveUsers } from './middleware/activeUser';
-import { MONTHLY_LEADERBOARD, addLeaderboardPoints } from './middleware/leaderboard';
+import { MONTHLY_LEADERBOARD_PREFIX, addLeaderboardPoints } from './middleware/leaderboard';
 import dragonfly from './utils/dragonflyClient';
 import { keyForCurrMonth, keyForMonth } from './utils/currentMonth';
 
@@ -58,7 +58,7 @@ app.get('/active-users-past-two-months', async (req, res) => {
 
 // Endpoint to get top 10 users from current month's leaderboard.
 app.get('/leaderboard-current-month', async (req, res) => {
-    const key = keyForCurrMonth(MONTHLY_LEADERBOARD);
+    const key = keyForCurrMonth(MONTHLY_LEADERBOARD_PREFIX);
     // ZREVRANGE returns members ordered from highest to lowest score.
     // Using the WITHSCORES option to include the scores in result.
     const leaderboard = await dragonfly.zrevrange(key, 0, 9, 'WITHSCORES');
