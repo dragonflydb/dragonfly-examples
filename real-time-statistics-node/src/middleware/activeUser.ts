@@ -4,7 +4,7 @@ import { keyForCurrMonth } from '../utils/currentMonth';
 
 export const MONTHLY_ACTIVE_USER_PREFIX = 'monthly_active_users';
 
-// Middleware to track user actions.
+// Middleware to track monthly active users.
 export const trackMonthlyActiveUsers = (dragonfly: Dragonfly) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         // Assume userId is passed in the request body.

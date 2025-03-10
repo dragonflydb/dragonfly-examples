@@ -4,7 +4,7 @@ import { keyForCurrMonth } from '../utils/currentMonth';
 
 export const MONTHLY_LEADERBOARD_PREFIX = 'monthly_leaderboard';
 
-// Middleware to add points to user's leaderboard score
+// Middleware to add points to user's leaderboard score.
 export const addLeaderboardPoints = (dragonfly: Dragonfly) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         // Assume userId is passed in the request body
@@ -14,6 +14,7 @@ export const addLeaderboardPoints = (dragonfly: Dragonfly) => {
         }
 
         // Add 10 points for the user to the leaderboard key (Sorted Set) for the current month.
+        // Of course, you can define different points for different user actions.
         const leaderboardKey = keyForCurrMonth(MONTHLY_LEADERBOARD_PREFIX)
         await dragonfly.zincrby(leaderboardKey, 10, userId);
 
