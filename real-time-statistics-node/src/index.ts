@@ -1,5 +1,5 @@
 import express from 'express';
-import { MONTHLY_ACTIVE_USER_PREFIX, trackMonthlyActiveUser } from './middleware/activeUser';
+import { MONTHLY_ACTIVE_USER_PREFIX, trackMonthlyActiveUsers } from './middleware/activeUser';
 import { MONTHLY_LEADERBOARD, addLeaderboardPoints } from './middleware/leaderboard';
 import dragonfly from './utils/dragonflyClient';
 import { keyForCurrMonth, keyForMonth } from './utils/currentMonth';
@@ -13,7 +13,7 @@ app.use(express.json());
 //  - Track this user as an active user.
 //  - Add points for the user in the leaderboard.
 app.post('/user-action',
-    trackMonthlyActiveUser(dragonfly),
+    trackMonthlyActiveUsers(dragonfly),
     addLeaderboardPoints(dragonfly),
     (req, res) => {
         res.json({ message: 'User action finished successfully!' });
