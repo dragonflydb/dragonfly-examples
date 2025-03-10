@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Redis as Dragonfly } from 'ioredis';
-import { keyForCurrMonth } from '../utils/currentMonth';
+import { keyForCurrMonth } from '../utils/keyGenerator';
 
 export const MONTHLY_LEADERBOARD_PREFIX = 'monthly_leaderboard';
 
