@@ -1,8 +1,8 @@
 import express from 'express'
-import { MONTHLY_ACTIVE_USER_PREFIX, trackMonthlyActiveUsers } from './middleware/activeUser'
-import { MONTHLY_LEADERBOARD_PREFIX, addLeaderboardPoints } from './middleware/leaderboard'
 import dragonfly from './utils/dragonflyClient'
 import { keyForCurrMonth, keyForMonth } from './utils/keyGenerator'
+import { MONTHLY_ACTIVE_USER_PREFIX, trackMonthlyActiveUsers } from './middleware/activeUser'
+import { MONTHLY_LEADERBOARD_PREFIX, addLeaderboardPoints } from './middleware/leaderboard'
 
 // The Express application.
 const app = express()
@@ -28,24 +28,31 @@ app.get('/active-users-past-two-months', async (req, res) => {
 	const now = new Date()
 	const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1)
 
-	const currKey = keyForCurrMonth(MONTHLY_ACTIVE_USER_PREFIX)
-	const lastKey = keyForMonth(MONTHLY_ACTIVE_USER_PREFIX, lastMonth)
+    // Construct the HyperLogLog keys for the current and last months.
+	const currMonthKey = keyForCurrMonth(MONTHLY_ACTIVE_USER_PREFIX)
+	const lastMonthKey = keyForMonth(MONTHLY_ACTIVE_USER_PREFIX, lastMonth)
+
+    // Calculate the last second of the current month in Unix timestamp.
+    // The merge key should expire at that time to allow a new round of "past two months."
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    lastDayOfMonth.setHours(23, 59, 59, 999);
+    const expireAt = Math.floor(lastDayOfMonth.getTime() / 1000)
 
 	// PFMERGE destkey [sourcekey [sourcekey ...]]
 	//
 	// The PFMERGE command merges the cardinalities from two (or more) source HyperLogLog keys.
 	// The merged cardinality value is set to the destination key.
-	// If the destination key exists, it is treated as one of the sources and its cardinality will be included.
-	// Thus, we can use a new key and expire it.
+	// If the destination key exists, it is treated as one of the sources, and its cardinality will be included.
+    // This design is intended, since HyperLogLog counts a unique value only once.
 	//
-	// The following code pipelines 3 commands: PFMERGE, PFCOUNT, and EXPIRE.
+	// The following code pipelines 3 commands: PFMERGE, PFCOUNT, and EXPIREAT.
 	// The result of PFCOUNT is returned as the value.
-	const mergeKey = `merge_active_users:${crypto.randomUUID()}`
+	const mergeKey = 'active_users_past_two_months'
 	const result = (await dragonfly
 		.pipeline()
-		.pfmerge(mergeKey, currKey, lastKey)
+		.pfmerge(mergeKey, currMonthKey, lastMonthKey)
 		.pfcount(mergeKey)
-		.expire(mergeKey, 30)
+		.expireat(mergeKey, expireAt)
 		.exec()) as [error: Error | null, result: unknown][]
 
 	const [, [, count]] = result
