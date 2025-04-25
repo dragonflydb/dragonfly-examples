@@ -7,22 +7,22 @@ const app = express();
 app.use(express.json());
 
 // Dragonfly native Pub/Sub messaging.
-const dragonflySubMessagerHandler = async (channel: string, message: string) => {
+const pubsubChannel = 'my-pub-sub-channel';
+const pubsubMessagerHandler = async (channel: string, message: string) => {
     await new Promise(resolve => setTimeout(resolve, 2000));
     console.log(`Pub/Sub message processed: ${message}`);
 };
-const pubsubChannel = 'my-pub-sub-channel';
 const dragonflyPub = new DragonflyPublisher(pubsubChannel);
-const dragonflySub = new DragonflySubscriber(pubsubChannel, dragonflySubMessagerHandler);
+const dragonflySub = new DragonflySubscriber(pubsubChannel, pubsubMessagerHandler);
 
 // Express handlers.
 app.post('/pub-sub-message', (req, res) => {
     dragonflyPub.publish(JSON.stringify(req.body));
     res.json({ message: 'Pub/Sub message received' });
-})
+});
 
 // Server initialization.
-const PORT = 3000;
+const PORT = parseInt(process.env.DRAGONFLY_PORT || '3000', 10);
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
