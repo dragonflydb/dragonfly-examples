@@ -3,32 +3,36 @@ import { Redis as Dragonfly } from 'ioredis';
 type MessageHandler = (channel: string, message: string) => void;
 
 export class DragonflySubscriber {
-    private readonly subscriberClient: Dragonfly;
+    private readonly sub: Dragonfly;
     private readonly channel: string;
     private readonly handler: MessageHandler;
-    private isSubscribed = false;
 
-    constructor(dragonfly: Dragonfly, channel: string, handler: MessageHandler) {
-        this.subscriberClient = dragonfly;
+    // Note that a connection can't play both publisher and subscriber roles at the same time.
+    // More specifically, when a client issues subscribe() or psubscribe(), it enters the "subscriber" mode.
+    // From that point, only commands that modify the subscription set are valid.
+    // These commands are: subscribe(), psubscribe(), unsubscribe(), punsubscribe(), ping, and quit().
+    // When the subscription set is empty (via unsubscribe/punsubscribe), the connection is put back into the regular mode.
+    constructor(channel: string, handler: MessageHandler) {
+        const dragonfly = new Dragonfly({
+            host: process.env.DRAGONFLY_HOST || 'localhost',
+            port: parseInt(process.env.DRAGONFLY_PORT || '6380', 10),
+        });
+        this.sub = dragonfly;
         this.channel = channel;
         this.handler = handler;
         this.initialize();
     }
 
     private initialize() {
-        this.subscriberClient.on('message', this.handler);
-        this.subscriberClient.subscribe(this.channel, (err, _) => {
+        this.sub.on('message', this.handler);
+        this.sub.subscribe(this.channel, (err, _) => {
             if (err) {
-                console.error(`failed to subscribe to channel "${this.channel}": ${err.message}`);
+                console.error(`Failed to subscribe to channel "${this.channel}": ${err.message}`);
                 return;
             }
-            this.isSubscribed = true;
-            console.log(`successfully subscribed to channel "${this.channel}"`);
+            console.log(`Successfully subscribed to channel "${this.channel}"`);
         });
     }
 
-    disconnect() {
-        if (!this.isSubscribed) return;
-        this.subscriberClient.unsubscribe();
-    }
+    close() { this.sub.quit(); }
 }

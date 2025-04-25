@@ -1,26 +1,43 @@
 import express from 'express';
-import dragonflyClient from './utils/dragonflyClient';
 import { DragonflyPublisher } from './pubsub/pub';
 import { DragonflySubscriber } from './pubsub/sub';
 
-// The Express application.
+// Express application.
 const app = express();
 app.use(express.json());
 
-// Pub/Sub.
-const dragonflySubscriberMessagerHandler = (channel: string, message: string) => {
-    console.log(`processing message: ${message}`);
+// Dragonfly native Pub/Sub messaging.
+const dragonflySubMessagerHandler = async (channel: string, message: string) => {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log(`Pub/Sub message processed: ${message}`);
 };
-const dragonflyPublisher = new DragonflyPublisher(dragonflyClient.dragonfly, 'my-channel');
-const dragonflySubscriber = new DragonflySubscriber(dragonflyClient.dragonflySubscriber, 'my-channel', dragonflySubscriberMessagerHandler);
+const pubsubChannel = 'my-pub-sub-channel';
+const dragonflyPub = new DragonflyPublisher(pubsubChannel);
+const dragonflySub = new DragonflySubscriber(pubsubChannel, dragonflySubMessagerHandler);
 
+// Express handlers.
 app.post('/pub-sub-message', (req, res) => {
-    dragonflyPublisher.publish(JSON.stringify(req.body));
-    res.json({ message: 'successfully procssed message' })
+    dragonflyPub.publish(JSON.stringify(req.body));
+    res.json({ message: 'Pub/Sub message received' });
 })
 
-// Start the server.
-const PORT = 3000
+// Server initialization.
+const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`server is running on http://localhost:${PORT}`)
-})
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+// Server graceful shutdown.
+const gracefulShutdown = () => {
+    console.log('Shutting down gracefully...');
+    app.listen().close(() => {
+        console.log('Express server closed');
+        dragonflySub.close();
+        dragonflyPub.close();
+        console.log('Dragonfly Pub/Sub disconnected');
+        process.exit(0);
+    });
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
