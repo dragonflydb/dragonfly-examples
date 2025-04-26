@@ -1,4 +1,5 @@
 import { Redis as Dragonfly } from 'ioredis';
+import { createDragonflyClient } from '../utils/dragonfly.client';
 
 type MessageHandler = (channel: string, message: string) => void;
 
@@ -13,10 +14,7 @@ export class DragonflySubscriber {
     // These commands are: subscribe(), psubscribe(), unsubscribe(), punsubscribe(), ping, and quit().
     // When the subscription set is empty (via unsubscribe/punsubscribe), the connection is put back into the regular mode.
     constructor(channel: string, handler: MessageHandler) {
-        const dragonfly = new Dragonfly({
-            host: process.env.DRAGONFLY_HOST || 'localhost',
-            port: parseInt(process.env.DRAGONFLY_PORT || '6380', 10),
-        });
+        const dragonfly = createDragonflyClient();
         this.sub = dragonfly;
         this.channel = channel;
         this.handler = handler;

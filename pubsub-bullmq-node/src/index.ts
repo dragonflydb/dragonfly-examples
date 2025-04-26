@@ -1,6 +1,7 @@
 import express from 'express';
 import { DragonflyPublisher } from './pubsub/pub';
 import { DragonflySubscriber } from './pubsub/sub';
+import { DragonflyQueue } from './mq/queue';
 
 // Express application.
 const app = express();

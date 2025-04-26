@@ -8,6 +8,7 @@
     "dev": "ts-node-dev src/index.ts"
   },
   "dependencies": {
+    "bullmq": "^5.50.0",
     "express": "^4.21.2",
     "ioredis": "^5.6.0"
   },
