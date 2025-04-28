@@ -65,16 +65,47 @@ app.listen(PORT, () => {
 });
 
 // Server graceful shutdown.
-const gracefulShutdown = () => {
+const gracefulShutdown = async () => {
     console.log('Shutting down gracefully...');
-    app.listen().close(() => {
-        console.log('Express server closed');
-        dragonflySub.close();
-        dragonflyPub.close();
-        console.log('Dragonfly Pub/Sub disconnected');
-        process.exit(0);
+
+    // Close the Express application server first.
+    await new Promise<void>((resolve) => {
+        app.listen().close(() => {
+            console.log('Express server closed');
+            resolve();
+        });
     });
+
+    // Close Pub/Sub connections.
+    dragonflySub.close();
+    dragonflyPub.close();
+    console.log('Dragonfly Pub/Sub closed');
+
+    // Close BullMQ connections.
+    try {
+        await Promise.all([
+            dragonflyWorker.close(),
+            dragonflyQueue.close()
+        ]);
+        console.log('Dragonfly BullMQ closed');
+    } catch (error) {
+        console.error('Error closing BullMQ connections:', error);
+    }
+
+    process.exit(0);
 };
 
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+// Register the shutdown handlers
+process.on('SIGTERM', () => {
+    gracefulShutdown().catch(error => {
+        console.error('Error during shutdown:', error);
+        process.exit(1);
+    });
+});
+
+process.on('SIGINT', () => {
+    gracefulShutdown().catch(error => {
+        console.error('Error during shutdown:', error);
+        process.exit(1);
+    });
+});
