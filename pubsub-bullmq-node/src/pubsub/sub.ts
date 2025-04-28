@@ -14,8 +14,7 @@ export class DragonflySubscriber {
     // These commands are: subscribe(), psubscribe(), unsubscribe(), punsubscribe(), ping, and quit().
     // When the subscription set is empty (via unsubscribe/punsubscribe), the connection is put back into the regular mode.
     constructor(channel: string, handler: MessageHandler) {
-        const dragonfly = createDragonflyClient();
-        this.sub = dragonfly;
+        this.sub = createDragonflyClient();
         this.channel = channel;
         this.handler = handler;
         this.initialize();

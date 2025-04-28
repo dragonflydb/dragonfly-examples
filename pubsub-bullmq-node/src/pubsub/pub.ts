@@ -6,8 +6,7 @@ export class DragonflyPublisher {
     private channel: string;
 
     constructor(channel: string) {
-        const dragonfly = createDragonflyClient();
-        this.pub = dragonfly;
+        this.pub = createDragonflyClient();
         this.channel = channel;
     }
 
