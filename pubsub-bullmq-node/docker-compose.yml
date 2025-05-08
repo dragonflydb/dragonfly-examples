@@ -1,0 +1,13 @@
+version: '3'
+services:
+  pubsub-bullmq-node-dragonfly:
+    container_name: "dragonfly"
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6380:6379"
+    command:
+      - "--dir=/data"
+      - "--cluster_mode=emulated"
+      - "--lock_on_hashtags"

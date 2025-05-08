@@ -1,0 +1,23 @@
+# This is an example showing how BullMQ uses multiple keys of different Dragonfly data types to manage a single queue.
+
+dragonfly$> KEYS "{my-prefix}:*"
+ 1) "{my-prefix}:my-queue:events"
+ 2) "{my-prefix}:my-queue:repeat:dc8f96808dbf0ca8802f8088560e1ac4:1745770085000"
+ 3) "{my-prefix}:my-queue:1"
+ 4) "{my-prefix}:my-queue:id"
+ 5) "{my-prefix}:my-queue:2"
+ 6) "{my-prefix}:my-queue:meta"
+ 7) "{my-prefix}:my-queue:3"
+ 8) "{my-prefix}:my-queue:repeat:dc8f96808dbf0ca8802f8088560e1ac4"
+ 9) "{my-prefix}:my-queue:stalled-check"
+10) "{my-prefix}:my-queue:repeat:dc8f96808dbf0ca8802f8088560e1ac4:1745770080000"
+11) "{my-prefix}:my-queue:repeat"
+12) "{my-prefix}:my-queue:repeat:dc8f96808dbf0ca8802f8088560e1ac4:1745770090000"
+13) "{my-prefix}:my-queue:completed"
+
+dragonfly$> TYPE "{my-prefix}:my-queue:events"
+stream
+dragonfly$> TYPE "{my-prefix}:my-queue:meta"
+hash
+dragonfly$> TYPE "{my-prefix}:my-queue:completed"
+zset
