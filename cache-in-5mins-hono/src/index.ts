@@ -13,7 +13,7 @@ import {
   ShortLinkSelect,
 } from "./validator";
 
-// For simplicity, we are using local Redis, Dragonfly, and PostgreSQL instances.
+// For simplicity, we are using local Dragonfly/Redis and PostgreSQL instances.
 // Please ensure they are running locally and adjust the connection details as needed.
 const cache = new Cache({
   host: "localhost",
