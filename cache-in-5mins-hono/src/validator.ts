@@ -10,6 +10,7 @@ import { shortLinksTable } from "./schema";
 export const shortLinkInsertSchema = createInsertSchema(shortLinksTable, {
   originalUrl: (val) => z.url(),
 })
+  .strict()
   .omit({
     id: true,
     shortCode: true,
