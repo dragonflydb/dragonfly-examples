@@ -1,0 +1,30 @@
+services:
+  dragonfly:
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    container_name: "cache-with-hono-dragonfly"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6380:6379"
+    command:
+      - "--proactor_threads=2" # Friendly for local development.
+      - "--maxmemory=2GB" # In production, Dragonfly can utilize many more cores and much more memory.
+  redis:
+    image: "redis:latest"
+    container_name: "cache-with-hono-redis"
+    ports:
+      - "6379:6379"
+  postgres:
+    image: "postgres:17"
+    container_name: "cache-with-hono-postgres"
+    environment:
+      POSTGRES_USER: local_user_dev
+      POSTGRES_PASSWORD: local_pwd_dev
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
