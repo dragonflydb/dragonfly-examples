@@ -19,8 +19,8 @@ export const shortLinkInsertSchema = createInsertSchema(shortLinksTable, {
   .transform((data) => {
     const id = uuidv7();
     const now = new Date();
-    const exp = new Date(now);
-    exp.setDate(exp.getDate() + 30); // Expire in 30 days.
+    const expiresAt = new Date(now);
+    expiresAt.setDate(expiresAt.getDate() + 30); // Expire in 30 days.
     return {
       ...data,
       id,
@@ -29,7 +29,7 @@ export const shortLinkInsertSchema = createInsertSchema(shortLinksTable, {
         omitPadding: true,
       }),
       createdAt: now,
-      expiresAt: exp,
+      expiresAt: expiresAt,
     };
   });
 

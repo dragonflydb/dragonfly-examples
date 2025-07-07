@@ -7,8 +7,10 @@ services:
     ports:
       - "6380:6379"
     command:
-      - "--proactor_threads=2" # Friendly for local development.
-      - "--maxmemory=2GB" # In production, Dragonfly can utilize many more cores and much more memory.
+      # The following configs are friendly for local development.
+      # In production, Dragonfly can utilize many more CPU cores and much more memory with ease.
+      - "--proactor_threads=2"
+      - "--maxmemory=2GB"
   redis:
     image: "redis:latest"
     container_name: "cache-with-hono-redis"
