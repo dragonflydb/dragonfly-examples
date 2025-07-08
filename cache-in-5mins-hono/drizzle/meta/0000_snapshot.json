@@ -1,5 +1,5 @@
 {
-  "id": "f9fb3916-9532-42f7-820d-d525a1bdcc02",
+  "id": "f4ec2f56-49f2-4907-8902-d77ab9723dd0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -16,13 +16,13 @@
         },
         "original_url": {
           "name": "original_url",
-          "type": "varchar(2048)",
+          "type": "varchar(4096)",
           "primaryKey": false,
           "notNull": true
         },
         "short_code": {
           "name": "short_code",
-          "type": "varchar",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": true
         },

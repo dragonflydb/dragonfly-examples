@@ -12,9 +12,10 @@ Last but not least, we also use [`npx`](https://docs.npmjs.com/cli/v8/commands/n
 
 Make sure the prerequisites above are installed before moving forward.
 
-- [Install Bun](https://bun.sh/): 1.2.17+
-- [Install Docker Engine](https://docs.docker.com/engine/install/): Client 27.4.0+, Docker Desktop 4.37.2+
-- [Install `npx`](https://docs.npmjs.com/cli/v8/commands/npx): 11.0.0+
+- [Install Bun](https://bun.sh/): v1.2.17+
+- [Install Docker Engine](https://docs.docker.com/engine/install/): Client v27.4.0+, Docker Desktop v4.37.2+
+- [Install `npx`](https://docs.npmjs.com/cli/v8/commands/npx): v11.0.0+
+- If you want to try running the project with NodeJS natively, make sure [NodeJS is installed](https://nodejs.org/en/download): v22.7.0+
 
 ---
 

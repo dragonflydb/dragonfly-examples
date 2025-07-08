@@ -1,6 +1,7 @@
 import { eq, and, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 import { zValidator } from "@hono/zod-validator";
 import { Redis as Cache } from "ioredis";
 import { stringify as uuidStringify } from "uuid";
@@ -48,9 +49,8 @@ app.post(
 app.get("/:shortCode", async (c) => {
   // Parse the short code as a UUIDv7.
   const shortCode = c.req.param("shortCode");
-  const id = uuidStringify(
-    Uint8Array.fromBase64(shortCode, { alphabet: "base64url" }),
-  );
+  const idBytes = new Uint8Array(Buffer.from(shortCode, "base64url"));
+  const id = uuidStringify(idBytes);
 
   // Read from cache.
   const originalUrl = await cache.get(id);
@@ -76,4 +76,7 @@ app.get("/:shortCode", async (c) => {
   return c.redirect(result.originalUrl);
 });
 
-export default app;
+// Run the server.
+const PORT = 3000;
+serve({ fetch: app.fetch, port: PORT });
+console.log(`Server running on http://localhost:${PORT}`);
