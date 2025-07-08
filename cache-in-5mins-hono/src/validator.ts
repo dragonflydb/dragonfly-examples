@@ -1,5 +1,5 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { v7 as uuidv7, parse as uuidParse } from "uuid";
+import { v7 as uuidv7, stringify as uuidStringify } from "uuid";
 import { z } from "zod/v4";
 
 import { shortLinksTable } from "./schema";
@@ -18,19 +18,19 @@ export const shortLinkInsertSchema = createInsertSchema(shortLinksTable, {
     expiresAt: true,
   })
   .transform((data) => {
-    const id = uuidv7();
-    const now = new Date();
-    const expiresAt = new Date(now);
+    const idBytes = new Uint8Array(16);
+    uuidv7(undefined, idBytes);
+    const id = uuidStringify(idBytes);
+    const shortCode = Buffer.from(idBytes).toString("base64url");
+    const createdAt = new Date();
+    const expiresAt = new Date(createdAt);
     expiresAt.setDate(expiresAt.getDate() + 30); // Expire in 30 days.
     return {
       ...data,
       id,
-      shortCode: uuidParse(id).toBase64({
-        alphabet: "base64url",
-        omitPadding: true,
-      }),
-      createdAt: now,
-      expiresAt: expiresAt,
+      shortCode,
+      createdAt,
+      expiresAt,
     };
   });
 
