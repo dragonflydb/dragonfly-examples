@@ -1,0 +1,8 @@
+project: recommendation_system
+registry: data/registry.db
+provider: local
+offline_store:
+  type: duckdb
+online_store:
+  type: redis
+  connection_string: "localhost:6379"
