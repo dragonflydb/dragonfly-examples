@@ -1,0 +1,83 @@
+networks:
+  ha-sentinel-net:
+    driver: bridge
+
+services:
+  dragonfly-0:
+    container_name: "dragonfly-0"
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    networks:
+      - "ha-sentinel-net"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6379:6379"
+    command:
+      - "--dir=/data"
+      - "--port=6379"
+  dragonfly-1:
+    container_name: "dragonfly-1"
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    networks:
+      - "ha-sentinel-net"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6380:6380"
+    command:
+      - "--dir=/data"
+      - "--port=6380"
+  dragonfly-2:
+    container_name: "dragonfly-2"
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    networks:
+      - "ha-sentinel-net"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6381:6381"
+    command:
+      - "--dir=/data"
+      - "--port=6381"
+  sentinel-0:
+    container_name: "sentinel-0"
+    image: redis:6.0-alpine
+    networks:
+      - "ha-sentinel-net"
+    depends_on:
+      - "dragonfly-0"
+      - "dragonfly-1"
+      - "dragonfly-2"
+    ports:
+      - "8000:8000"
+    command: "redis-server /etc/sentinel-config/sentinel.conf --sentinel"
+    volumes:
+      - "./config/sentinel-0:/etc/sentinel-config"
+  sentinel-1:
+    container_name: "sentinel-1"
+    image: redis:6.0-alpine
+    networks:
+      - "ha-sentinel-net"
+    depends_on:
+      - "dragonfly-0"
+      - "dragonfly-1"
+      - "dragonfly-2"
+    ports:
+      - "8001:8001"
+    command: "redis-server /etc/sentinel-config/sentinel.conf --sentinel"
+    volumes:
+      - "./config/sentinel-1:/etc/sentinel-config"
+  sentinel-2:
+    container_name: "sentinel-2"
+    image: redis:6.0-alpine
+    networks:
+      - "ha-sentinel-net"
+    depends_on:
+      - "dragonfly-0"
+      - "dragonfly-1"
+      - "dragonfly-2"
+    ports:
+      - "8002:8002"
+    command: "redis-server /etc/sentinel-config/sentinel.conf --sentinel"
+    volumes:
+      - "./config/sentinel-2:/etc/sentinel-config"
