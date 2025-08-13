@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   redis-source:
     container_name: "redis-source" # used in sentinel.conf
@@ -8,7 +8,7 @@ services:
       - "6379:6379"
   dragonfly:
     container_name: "dragonfly"
-    image: 'ghcr.io/dragonflydb/dragonfly:v1.10.0-ubuntu'
+    image: "ghcr.io/dragonflydb/dragonfly:v1.10.0-ubuntu"
     ulimits:
       memlock: -1
     ports:
@@ -16,7 +16,7 @@ services:
     command:
       - "--dir=/data"
   sentinel-1:
-    container_name: 'sentinel-1'
+    container_name: "sentinel-1"
     image: redis:6.0-alpine
     ports:
       - "5001:5000"
@@ -24,7 +24,7 @@ services:
     volumes:
       - "./config/sentinel-1:/etc/redis-config"
   sentinel-2:
-    container_name: 'sentinel-2'
+    container_name: "sentinel-2"
     image: redis:6.0-alpine
     ports:
       - "5002:5000"
@@ -32,7 +32,7 @@ services:
     volumes:
       - "./config/sentinel-2:/etc/redis-config"
   sentinel-3:
-    container_name: 'sentinel-3'
+    container_name: "sentinel-3"
     image: redis:6.0-alpine
     ports:
       - "5003:5000"
