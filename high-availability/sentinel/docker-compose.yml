@@ -20,6 +20,8 @@ services:
     image: "docker.dragonflydb.io/dragonflydb/dragonfly"
     networks:
       - "ha-sentinel-net"
+    depends_on:
+      - "dragonfly-0"
     ulimits:
       memlock: -1
     ports:
@@ -27,11 +29,14 @@ services:
     command:
       - "--dir=/data"
       - "--port=6380"
+      - "--replicaof=dragonfly-0:6379"
   dragonfly-2:
     container_name: "dragonfly-2"
     image: "docker.dragonflydb.io/dragonflydb/dragonfly"
     networks:
       - "ha-sentinel-net"
+    depends_on:
+      - "dragonfly-0"
     ulimits:
       memlock: -1
     ports:
@@ -39,6 +44,7 @@ services:
     command:
       - "--dir=/data"
       - "--port=6381"
+      - "--replicaof=dragonfly-0:6379"
   sentinel-0:
     container_name: "sentinel-0"
     image: redis:6.0-alpine
