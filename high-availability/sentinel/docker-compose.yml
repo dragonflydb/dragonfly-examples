@@ -47,7 +47,7 @@ services:
       - "--replicaof=dragonfly-0:6379"
   sentinel-0:
     container_name: "sentinel-0"
-    image: redis:6.0-alpine
+    image: "redis:6.0-alpine"
     networks:
       - "ha-sentinel-net"
     depends_on:
@@ -61,7 +61,7 @@ services:
       - "./config/sentinel-0:/etc/sentinel-config"
   sentinel-1:
     container_name: "sentinel-1"
-    image: redis:6.0-alpine
+    image: "redis:6.0-alpine"
     networks:
       - "ha-sentinel-net"
     depends_on:
@@ -75,7 +75,7 @@ services:
       - "./config/sentinel-1:/etc/sentinel-config"
   sentinel-2:
     container_name: "sentinel-2"
-    image: redis:6.0-alpine
+    image: "redis:6.0-alpine"
     networks:
       - "ha-sentinel-net"
     depends_on:
