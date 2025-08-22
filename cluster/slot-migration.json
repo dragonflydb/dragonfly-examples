@@ -1,0 +1,43 @@
+[
+  {
+    "slot_ranges": [
+      {
+        "start": 0,
+        "end": 999
+      }
+    ],
+    "master": {
+      "id": "97486c9d7e0507e1edb2dfba4655224d5b61c5e2",
+      "ip": "localhost",
+      "port": 30001
+    },
+    "replicas": []
+  },
+  {
+    "slot_ranges": [
+      {
+        "start": 1000,
+        "end": 16383
+      }
+    ],
+    "master": {
+      "id": "728cf25ecd4d1230805754ff98939321d72d23ef",
+      "ip": "localhost",
+      "port": 30002
+    },
+    "replicas": [],
+    "migrations": [
+      {
+        "slot_ranges": [
+          {
+            "start": 1000,
+            "end": 8000
+          }
+        ],
+        "node_id": "97486c9d7e0507e1edb2dfba4655224d5b61c5e2",
+        "ip": "localhost",
+        "port": 31001
+      }
+    ]
+  }
+]

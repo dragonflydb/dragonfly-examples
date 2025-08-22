@@ -1,0 +1,30 @@
+[
+  {
+    "slot_ranges": [
+      {
+        "start": 0,
+        "end": 999
+      }
+    ],
+    "master": {
+      "id": "ed4718a762eac755b1692ec621a0eec10bbe66aa",
+      "ip": "localhost",
+      "port": 30001
+    },
+    "replicas": []
+  },
+  {
+    "slot_ranges": [
+      {
+        "start": 1000,
+        "end": 16383
+      }
+    ],
+    "master": {
+      "id": "4504afbf9e2d4f4faeeaef516e3baed04bbb7759",
+      "ip": "localhost",
+      "port": 30002
+    },
+    "replicas": []
+  }
+]
