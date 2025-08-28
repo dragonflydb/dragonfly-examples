@@ -19,7 +19,6 @@ training and online serving in recommendation systems.
 docker run -p 6379:6379 --ulimit memlock=-1 docker.dragonflydb.io/dragonflydb/dragonfly
 ````
 
-- Make sure commands below are executed within the current project's directory (`dragonfly-examples/feast-recommendation`).
 - Let's use [`uv`](https://github.com/astral-sh/uv) as our Python package and project manager.
 
 ```bash
@@ -30,16 +29,26 @@ $> curl -LsSf https://astral.sh/uv/install.sh | sh
 $> wget -qO- https://astral.sh/uv/install.sh | sh
 ```
 
-- From here on, we always use `uv` to run commands, which ensures that the correct Python version and dependencies are used.
+- Make sure commands below are executed within the current project's directory (`dragonfly-examples/feast-recommendation`).
+
+```bash
+$> cd /PATH/TO/dragonfly-examples/feast-recommendation-duckdb-dragonfly
+```
+
 - Install dependencies by using `uv sync` (which also automatically creates a `venv`):
 
 ```bash
 $> uv sync
 ```
 
+- From here on, we always use `uv` to run commands, which ensures that the correct Python version and dependencies are used.
 - Generate sample data for the recommendation system:
 
 ```bash
+# Create the 'data' directory to store the Feast registry file and the offline store (DuckDB) database files.
+$> mkdir data
+
+# Run the data generation script to create sample Parquet files representing users, items, and interactions.
 $> uv run 01_recommendation_data.py
 ```
 
