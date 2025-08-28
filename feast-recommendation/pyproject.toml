@@ -1,0 +1,14 @@
+[project]
+name = "feast-recommendation"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.9"
+dependencies = [
+    "docker>=7.1.0",
+    "feast[redis,duckdb]==0.51.0",
+    "numpy>=2.3.2",
+    "pandas>=2.3.1",
+    "pyarrow<=17.0.0",
+    "python-dateutil>=2.9.0.post0",
+]
