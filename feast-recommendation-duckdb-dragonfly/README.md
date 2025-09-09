@@ -49,7 +49,7 @@ $> uv sync
 $> mkdir data
 
 # Run the data generation script to create sample Parquet files representing users, items, and interactions.
-$> uv run 01_recommendation_data.py
+$> uv run recommendation_01_data.py
 ```
 
 - Register the Feast objects (entities, feature views, data sources):
@@ -75,11 +75,52 @@ $> uv run feast materialize '2024-08-01T00:00:00' '2025-08-31T23:59:59'
 - Retrieve feature values from the offline store (DuckDB) example:
 
 ```bash
-$> uv run 03_recommendation_historical_features.py
+$> uv run recommendation_03_historical_features.py
 ```
 
 - Retrieve feature values from the online store (Dragonfly) example:
 
 ```bash
-$> uv run 04_recommendation_online_features.py
+$> uv run recommendation_04_online_features.py
+```
+
+- Run the Feast server to serve features via HTTP:
+
+```bash
+$> uv run feast serve
+```
+
+- Query the Feast server for online features example:
+
+```bash
+$> curl --request POST \
+  --url http://localhost:6566/get-online-features \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"features": [
+		"user_features:age",
+		"user_features:gender",
+		"user_features:avg_rating",
+		"user_features:preferred_category",
+		"item_features:category",
+		"item_features:price",
+		"item_features:popularity_score",
+		"item_features:avg_rating",
+		"interaction_features:view_count",
+		"interaction_features:last_rating",
+		"interaction_features:time_since_last_interaction"
+	],
+	"entities": {
+		"user_id": [1, 2],
+		"item_id": [101, 102]
+	},
+	"full_feature_names": true
+}'
+```
+
+- Build and run the Feast server as a Docker image:
+
+```bash
+$> docker build -t my-feast-server .
+$> docker run -p 6566:6566 my-feast-server
 ```
