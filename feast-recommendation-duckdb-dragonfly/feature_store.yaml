@@ -1,4 +1,4 @@
-project: recommendation_system
+project: feast_recommendation_duckdb_dragonfly
 registry: data/registry.db
 provider: local
 offline_store:

@@ -1,0 +1,8 @@
+# Ignore virtual environment
+venv
+
+# The following files contain the feature store initialization (i.e., store = FeatureStore(repo_path=".")).
+# Essentially, we only want to apply Feast objects (e.g., FeatureView, Entity, etc.) specified in
+# the '02_recommendation_repo.py' file.
+03_recommendation_historical_features.py
+04_recommendation_online_features.py

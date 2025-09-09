@@ -1,0 +1,11 @@
+# This file is the same as feature_store.yaml but with the online store connection string
+# set to "host.docker.internal:6379" to allow access from within a Docker container.
+# Assume Dragonfly is running on port 6379 within Docker on the host machine.
+project: feast_recommendation_duckdb_dragonfly
+registry: data/registry.db
+provider: local
+offline_store:
+  type: duckdb
+online_store:
+  type: redis
+  connection_string: "host.docker.internal:6379"
