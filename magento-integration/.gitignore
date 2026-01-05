@@ -1,0 +1,8 @@
+# Environment variables (contains secrets)
+.env
+
+# Magento installation (downloaded via Composer)
+/magento/
+
+# Auth file (generated from env vars)
+auth.json
