@@ -244,6 +244,3 @@ if __name__ == "__main__":
 
     # JSON (prettified)
     print(apple.model_dump_json(indent=2))
-
-    # JSON Schema (useful for generation)
-    # print(apple.model_json_schema())
